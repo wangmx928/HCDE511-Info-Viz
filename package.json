@@ -1,0 +1,35 @@
+{
+  "name": "VizHealth",
+  "version": "1.0.0",
+  "description": "A 7-week data visualization project for a group of four students. Multiple user-centered research methods have applied to improve the experience. The goal is to learn presenting information in a accessible and clear approach. The dashboard itself hopes to help potential users to narrow down on health insurance plans on the US market in 2020.",
+  "main": "server.js",
+  "config": {
+    "port": "3000"
+  },
+  "scripts": {
+    "dev": "PORT=3000 node server.js",
+    "test-local": "cd client && npm run build && cd ../ && npm run start",
+    "start": "node server.js",
+    "heroku-postbuild": "cd client && npm install && npm install --only=dev && npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "HCDE511",
+    "Information Visualization"
+  ],
+  "author": "Miaoxin Wang",
+  "license": "ISC",
+  "engines": {
+    "node": "12.x"
+  },
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "cors": "^2.8.5",
+    "es6-promise": "^4.2.8",
+    "express": "^4.17.1",
+    "express-graphql": "^0.9.0",
+    "graphql": "^14.6.0",
+    "sqlite3": "^4.1.1",
+    "vue": "^2.6.11"
+  }
+}

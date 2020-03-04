@@ -1,0 +1,59 @@
+{
+  InsuranceQuality(Code: "WA") {
+    State
+    Code
+    ARankHospitalsPercentage
+    WalletHubCompositeScore
+    USNewsRank
+    HCAccess
+    HCCareQuality
+    PublicHealth
+    LowMortalityRate
+    LowInfantMortalityRate
+    LowObesityRate
+    LowSmokingRate
+    LowSuicideRate
+  }
+}
+
+
+{
+  InsurancePlan(Code: "WA") {
+    StateCode
+    IssuerId
+    PlanMarketingName
+    PlanType
+    MetalLevel
+    DiseaseManagementProgramsOffered
+    PlanId
+    PlanVariantMarketingName
+    FirstTierUtilization
+    SBCHavingaBabyDeductible
+    SBCHavingaBabyCopayment
+    SBCHavingaBabyCoinsurance
+    SBCHavingaBabyLimit
+    SBCHavingDiabetesDeductible
+    SBCHavingDiabetesCopayment
+    SBCHavingDiabetesCoinsurance
+    SBCHavingDiabetesLimit
+    SBCHavingSimplefractureDeductible
+    SBCHavingSimplefractureCopayment
+    SBCHavingSimplefractureCoinsurance
+    SpecialtyDrugMaximumCoinsurance
+    TEHBDedInnTier1Individual
+    TEHBDedInnTier1Coinsurance
+    Tobacco
+    Age
+    IndividualRate
+    CoveredPregnancy
+    CoveredDepression
+    CoveredAsthma
+    CoveredLowBackPain
+    CoveredWeightLossPrograms
+    CoveredHeartDisease
+    CoveredPainManagement
+    CoveredHighBloodPressureCholesterol
+    CoveredDiabetes
+    CoverededDiseasesCount
+  }
+}

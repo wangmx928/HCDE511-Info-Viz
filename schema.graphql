@@ -1,0 +1,58 @@
+type AvgMonthlyPremium {
+  StateCode: String
+  AvgMonthlyPremium: Float
+}
+
+type InsurancePlan {
+  StateCode: String
+  IssuerId: String
+  PlanMarketingName: String
+  PlanType: String
+  MetalLevel: String
+  DiseaseManagementProgramsOffered: String
+  PlanId: String
+  PlanVariantMarketingName: String
+  FirstTierUtilization: String
+  SBCHavingaBabyDeductible: String
+  SBCHavingaBabyCopayment: String
+  SBCHavingaBabyCoinsurance: String
+  SBCHavingaBabyLimit: String
+  SBCHavingDiabetesDeductible: String
+  SBCHavingDiabetesCopayment: String
+  SBCHavingDiabetesCoinsurance: String
+  SBCHavingDiabetesLimit: String
+  SBCHavingSimplefractureDeductible: String
+  SBCHavingSimplefractureCopayment: String
+  SBCHavingSimplefractureCoinsurance: String
+  SpecialtyDrugMaximumCoinsurance: String
+  TEHBDedInnTier1Individual: String
+  TEHBDedInnTier1Coinsurance: String
+  Tobacco: String
+  Age: String
+  IndividualRate: String
+  CoveredPregnancy: String
+  CoveredDepression: String
+  CoveredAsthma: String
+  CoveredLowBackPain: String
+  CoveredWeightLossPrograms: String
+  CoveredHeartDisease: String
+  CoveredPainManagement: String
+  CoveredHighBloodPressureCholesterol: String
+  CoveredDiabetes: String
+  CoverededDiseasesCount: String
+}
+
+input PriceRangeType {
+  min: Int
+  max: Int
+}
+
+type Query {
+  AvgStatePremium: [AvgMonthlyPremium]
+  CheapestPlans: [InsurancePlan]
+  CheapestPlansByParams(StateCode: String, Age: String, PlanType: [String], CoveredDiseases: [String], IndividualRateRange: PriceRangeType): [InsurancePlan]
+  DistinctStateListOfPlan(Age: String, PlanType: [String], CoveredDiseases: [String], IndividualRateRange: PriceRangeType): [InsurancePlan]
+  PlansByStateTopThree(StateCode: String!): [InsurancePlan]
+  PlansByStateAndAgeTopThree(StateCode: String!, Age: String!): [InsurancePlan]
+}
+
