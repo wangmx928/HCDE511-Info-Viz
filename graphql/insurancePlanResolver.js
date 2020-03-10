@@ -98,7 +98,7 @@ const queries = {
     resolve: (root, args, context, info) => {
       return new Promise((resolve, reject) => {
         let conditionalString = getConditionalString(args);
-        console.log(">AvgStatePremiumByParams: conditionalString,", conditionalString)
+        console.log("StateMap:", conditionalString)
         database.all(`SELECT StateCode, round(avg(IndividualRate),2) as AvgMonthlyPremium
                       FROM InsurancePlan
                       ${conditionalString}
@@ -111,12 +111,102 @@ const queries = {
       });
     }
   },
-  FiltersListOfPlan: {
+  CoveredDiseasesFilterOptions: {
     type: graphql.GraphQLList(InsurancePlanType),
     args: {
       StateCode: {
         type: graphql.GraphQLString
       },
+      Age: {
+        type: graphql.GraphQLString
+      },
+      PlanType: {
+        type: graphql.GraphQLList(graphql.GraphQLString)
+      },
+      IndividualRateRange: {
+        type: PriceRangeType
+      }
+    },
+    resolve: (root, args, context, info) => {
+      return new Promise((resolve, reject) => {
+        let conditionalString = getConditionalString(args);
+        console.log("CoveredDiseasesFilter:", conditionalString)
+        database.all(`SELECT DISTINCT DiseaseManagementProgramsOffered
+                      FROM InsurancePlan
+                      ${conditionalString}`, function (err, rows) {
+          if (err) {
+            reject(null);
+          }
+          resolve(rows);
+        });
+      });
+    }
+  },
+  PlanTypeFilterOptions: {
+    type: graphql.GraphQLList(InsurancePlanType),
+    args: {
+      StateCode: {
+        type: graphql.GraphQLString
+      },
+      Age: {
+        type: graphql.GraphQLString
+      },
+      CoveredDiseases: {
+        type: graphql.GraphQLList(graphql.GraphQLString)
+      },
+      IndividualRateRange: {
+        type: PriceRangeType
+      }
+    },
+    resolve: (root, args, context, info) => {
+      return new Promise((resolve, reject) => {
+        let conditionalString = getConditionalString(args);
+        console.log("PlanFilter:", conditionalString)
+        database.all(`SELECT DISTINCT PlanType
+                      FROM InsurancePlan
+                      ${conditionalString}`, function (err, rows) {
+          if (err) {
+            reject(null);
+          }
+          resolve(rows);
+        });
+      });
+    }
+  },
+  AgeFilterOptions: {
+    type: graphql.GraphQLList(InsurancePlanType),
+    args: {
+      StateCode: {
+        type: graphql.GraphQLString
+      },
+      PlanType: {
+        type: graphql.GraphQLList(graphql.GraphQLString)
+      },
+      CoveredDiseases: {
+        type: graphql.GraphQLList(graphql.GraphQLString)
+      },
+      IndividualRateRange: {
+        type: PriceRangeType
+      }
+    },
+    resolve: (root, args, context, info) => {
+      return new Promise((resolve, reject) => {
+        let conditionalString = getConditionalString(args);
+        console.log("AgeFilter:", conditionalString)
+        database.all(`SELECT DISTINCT Age
+                      FROM InsurancePlan
+                      ${conditionalString}`, function (err, rows) {
+          if (err) {
+            reject(null);
+          }
+          resolve(rows);
+        });
+      });
+    }
+  },
+  StateFilterOptions: {
+    type: graphql.GraphQLList(InsurancePlanType),
+    args: {
       Age: {
         type: graphql.GraphQLString
       },
@@ -133,8 +223,8 @@ const queries = {
     resolve: (root, args, context, info) => {
       return new Promise((resolve, reject) => {
         let conditionalString = getConditionalString(args);
-        console.log(">FiltersListOfPlan conditionalString,", conditionalString)
-        database.all(`SELECT DISTINCT StateCode, PlanType, MetalLevel, Age, CoveredAsthma, CoveredDepression, CoveredDiabetes, CoveredHeartDisease, CoveredHighBloodPressureCholesterol, CoveredLowBackPain, CoveredPainManagement, CoveredPregnancy, CoveredWeightLossPrograms
+        console.log("StateFilter:", conditionalString)
+        database.all(`SELECT DISTINCT StateCode
                       FROM InsurancePlan
                       ${conditionalString}`, function (err, rows) {
           if (err) {
@@ -247,7 +337,10 @@ var InsurancePlanQueries = new graphql.GraphQLObjectType({
     AvgStatePremiumByParams: queries.AvgStatePremiumByParams,
     CheapestPlans: queries.CheapestPlans,
     CheapestPlansByParams: queries.CheapestPlansByParams,
-    FiltersListOfPlan: queries.FiltersListOfPlan,
+    StateFilterOptions: queries.StateFilterOptions,
+    AgeFilterOptions: queries.AgeFilterOptions,
+    PlanTypeFilterOptions: queries.PlanTypeFilterOptions,
+    CoveredDiseasesFilterOptions: queries.CoveredDiseasesFilterOptions,
     PlansByStateTopThree: queries.PlansByStateTopThree,
     PlansByStateAndAgeTopThree: queries.PlansByStateAndAgeTopThree
   }

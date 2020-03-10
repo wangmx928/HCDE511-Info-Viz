@@ -1,43 +1,57 @@
 <template>
   <div id="state-based-view">
-    <div v-b-visible="handleStatsVisibility" class="stats-badge vertical">
-      <StatsCard title="State" v-bind:value="highlightedState.State" />
-      <StatsCard
-        title="US News Rank"
-        v-bind:value="`#${highlightedState.USNewsRank}`"
-        v-bind:toolTip="stateWithHighestRank"
-        type="USNewsRank"
-      />
-      <StatsCard
-        title="Composite Score"
-        v-bind:value="highlightedState.WalletHubCompositeScore"
-        v-bind:toolTip="stateWithHighestCompScore"
-        type="WalletHubCompositeScore"
-      />
-      <StatsCard
-        title="Avg Monthly Price"
-        v-bind:value="`$${highlightedState.AverageMonthlyPrice}`"
-      />
+    <div class="state-info-section">
+      <div class="state-title">
+        <img alt="State-based View Icon" src="../assets/state.png" />
+        <div>STATE-BASED</div>
+      </div>
+
+      <div class="state-info">
+        <b-icon icon="info" font-scale="1"></b-icon>
+        <div>Hover/click to see more information.</div>
+      </div>
     </div>
 
-    <transition name="fade">
-      <div v-if="showFixedCollapsedStats && highlightedState.State != '-'" class="floated-stats">
-        <StatsCard v-bind:value="highlightedState.State" noIcon="true" />
+    <div id="state-map">
+      <div v-b-visible="handleStatsVisibility" class="stats-badge vertical">
+        <StatsCard title="State" v-bind:value="highlightedState.State" />
         <StatsCard
+          title="US News Rank"
           v-bind:value="`#${highlightedState.USNewsRank}`"
+          v-bind:toolTip="stateWithHighestRank"
           type="USNewsRank"
-          noIcon="true"
         />
         <StatsCard
+          title="Composite Score"
           v-bind:value="highlightedState.WalletHubCompositeScore"
+          v-bind:toolTip="stateWithHighestCompScore"
           type="WalletHubCompositeScore"
         />
-        <StatsCard v-bind:value="`$${highlightedState.AverageMonthlyPrice}`" />
+        <StatsCard
+          title="Avg Monthly Price"
+          v-bind:value="`$${highlightedState.AverageMonthlyPrice}`"
+        />
       </div>
-    </transition>
 
-    <div v-if="showErrorMessage">Error, please refresh the page...</div>
-    <div id="tile-map"></div>
+      <transition name="fade">
+        <div v-if="showFixedCollapsedStats && highlightedState.State != '-'" class="floated-stats">
+          <StatsCard v-bind:value="highlightedState.State" noIcon="true" />
+          <StatsCard
+            v-bind:value="`#${highlightedState.USNewsRank}`"
+            type="USNewsRank"
+            noIcon="true"
+          />
+          <StatsCard
+            v-bind:value="highlightedState.WalletHubCompositeScore"
+            type="WalletHubCompositeScore"
+          />
+          <StatsCard v-bind:value="`$${highlightedState.AverageMonthlyPrice}`" />
+        </div>
+      </transition>
+
+      <div v-if="showErrorMessage">Error, please refresh the page...</div>
+      <div id="tile-map"></div>
+    </div>
   </div>
 </template>
 
@@ -153,7 +167,23 @@ export default {
           padding: 0,
           y: -20
         },
-        series: seriesData
+        series: seriesData,
+        responsive: {
+          rules: [
+            {
+              condition: {
+                maxWidth: 500
+              },
+              chartOptions: {
+                legend: {
+                  align: "center",
+                  verticalAlign: "bottom",
+                  layout: "horizontal"
+                }
+              }
+            }
+          ]
+        }
       };
       if (!this.tileMapChart) {
         this.tileMapChart = Highcharts.chart("tile-map", chartOptions);
@@ -171,9 +201,18 @@ export default {
   },
   watch: {
     selectedStateFilterName(newVal) {
-      this.highlightedState = this._.find(this.insuranceQualities, o => {
-        return o.State == newVal;
-      });
+      if (!newVal) {
+        this.highlightedState = {
+          State: "-",
+          USNewsRank: "-",
+          WalletHubCompositeScore: "-",
+          AverageMonthlyPrice: "-"
+        };
+      } else {
+        this.highlightedState = this._.find(this.insuranceQualities, o => {
+          return o.State == newVal;
+        });
+      }
     },
     averageStatePremium() {
       let tileMapSeriesData = [
@@ -193,7 +232,7 @@ export default {
                   }
                 );
                 this.highlightedState.AverageMonthlyPrice = event.point.value;
-                this.$store.dispatch("updateSelectedFilter", {
+                this.$store.dispatch("updateContentBySelectedFilter", {
                   newVal: this.highlightedState.State,
                   filterType: "state",
                   type: "name"
@@ -229,11 +268,53 @@ export default {
 
 <style>
 #state-based-view {
+  padding-top: 270px;
+}
+
+#state-map {
   width: 90vw;
   margin: auto;
-  margin-top: 100px;
   display: inline-flex;
   justify-content: space-evenly;
+}
+
+.state-info-section {
+  display: inline-flex;
+  align-items: center;
+}
+
+.state-title {
+  display: inline-flex;
+  margin-left: 75px;
+}
+
+.state-title img {
+  width: 47px;
+  height: 32px;
+  display: inline-table;
+  margin: auto;
+}
+
+.state-title div {
+  color: var(--optional-blue);
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 5px;
+  display: inline-table;
+}
+
+.state-info {
+  color: var(--hover-grey);
+  font-size: 14px;
+  margin-left: 24px;
+}
+
+.state-info {
+  display: inline-flex;
+}
+
+.state-info .b-icon.bi {
+  margin: auto;
 }
 
 .stats-badge {
@@ -287,5 +368,8 @@ export default {
 
 .floated-stats .stats-card .description {
   font-size: 16px;
+}
+
+@media screen and (min-width: 480px) {
 }
 </style>
