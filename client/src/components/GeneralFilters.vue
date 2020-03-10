@@ -1,398 +1,312 @@
 <template>
-  <b-form>
-    <!-- Exposed cells -->
-    <!-- Keep this for the computed property -->
-    <div class="debug-text" style="display: none">(debug): {{ filtersGroup }}</div>
+  <div id="filter-section">
+    <div id="filter-header">
+      <h1 class="site-tag">VizHealth</h1>
+      <p
+        class="site-short-desc"
+      >An interactive dashboard to understand and explore health insurance in the United States</p>
+    </div>
+    <div class="filter-info-section">
+      <div class="filter-title">
+        <img alt="Filter Icon" src="../assets/filter.png" />
+        <div>FILTER</div>
+      </div>
 
-    <div class="exposed-filters">
-      <b-form inline>
-        <!-- <b-form-checkbox
-          v-model="allCoveredDiseaseProgramsSelected"
-          :indeterminate="indeterminateCoveredDiseasePrograms"
-          aria-describedby="coveredDiseasePrograms"
-          aria-controls="coveredDiseasePrograms"
-          @change="toggleAll"
-        >{{ allCoveredDiseaseProgramsSelected ? 'Un-select All' : 'Select All' }}</b-form-checkbox>
+      <div class="filter-info">
+        <b-icon icon="info" font-scale="1"></b-icon>
+        <div>Input your demographic information & prefered plans and coverage to see a more cutomized insurance plan.</div>
+      </div>
 
-        <b-form-checkbox-group
-          v-model="coveredDiseaseProgramsSelected"
-          :options="coveredDiseaseOptions"
-          name="coveredDiseasePrograms"
-          class="ml-4"
-          aria-label="Individual Covered Disease Program"
-        ></b-form-checkbox-group>-->
+      <b-button
+        v-on:click="resetFilters"
+        variant="outline-secondary"
+        class="reset-button"
+        size="sm"
+      >Reset All</b-button>
+    </div>
+    <b-form>
+      <div class="exposed-filters">
+        <b-form inline class="filter-row">
+          <b-input-group prepend="Age">
+            <b-form-select id="age-input" prepend="Age" :options="ageOptions" v-model="selectedAge"></b-form-select>
+          </b-input-group>
 
-        <div class="tag-options">
-          <b-form-group label class="mb-1 mr-sm-1 mb-sm-0">
-            <b-form-tags
-              v-model="coveredDiseaseProgramsSelected"
-              size="lg"
-              add-on-change
-              no-outer-focus
-              class="mb-1"
-            >
-              <template v-slot="{ tags, inputAttrs, inputHandlers, disabled, removeTag }">
-                <ul v-if="tags.length > 0" class="list-inline d-inline-block mb-1">
-                  <li v-for="tag in tags" :key="tag" class="list-inline-item">
-                    <b-form-tag
-                      @remove="removeTag(tag)"
-                      :title="tag"
-                      :disabled="disabled"
-                      variant="info"
-                    >{{ tag }}</b-form-tag>
-                  </li>
-                </ul>
-                <b-form-select
-                  v-bind="inputAttrs"
-                  v-on="inputHandlers"
-                  :disabled="disabled || coveredDiseaseOptions.length === 0"
-                  :options="coveredDiseaseOptions"
-                >
-                  <template v-slot:first>
-                    <option disabled value>Covered Disease Programs</option>
-                  </template>
-                </b-form-select>
-              </template>
-            </b-form-tags>
-          </b-form-group>
-        </div>
+          <b-form-select v-model="selectedState" :options="stateOptions"></b-form-select>
 
-        <b-input-group prepend="Age" class="mb-1 mr-sm-1 mb-sm-0">
-          <b-form-select
-            id="age-input"
-            prepend="Age"
-            class="mb-1 mr-sm-1 mb-sm-0"
-            :options="ageOptions"
-            v-model="selectedAge"
-          ></b-form-select>
-        </b-input-group>
+          <b-input-group class="sm">
+            <b-form-input
+              id="min-price"
+              v-model="selectedMinPrice"
+              type="number"
+              placeholder="Min Price：100"
+              debounce="1000"
+            ></b-form-input>
+          </b-input-group>
 
-        <b-form-group label="Plan Types">
-          <!-- could add Indeterminate checkbox use-case  -->
+          <b-input-group class="sm">
+            <b-form-input
+              id="max-price"
+              v-model="selectedMaxPrice"
+              type="number"
+              placeholder="Max Price: 600"
+              debounce="1000"
+            ></b-form-input>
+          </b-input-group>
+
+          <div class="filter-labels">Plan Type</div>
           <b-form-checkbox-group
             name="planTypesContols"
             v-model="selectedPlanType"
             :options="planTypeOptions"
             switches
           ></b-form-checkbox-group>
-        </b-form-group>
-      </b-form>
+        </b-form>
 
-      <b-form inline>
-        <b-form-select
-          v-model="selectedStateFromFilter"
-          :options="stateOptions"
-          v-show="showStateOption"
-        ></b-form-select>
-        <b-input-group class="sm">
-          <b-form-input
-            id="min-price"
-            v-model="minPrice"
-            type="number"
-            placeholder="Min Price: 100"
-            debounce="1000"
-          ></b-form-input>
-        </b-input-group>
-        <b-input-group class="sm">
-          <b-form-input
-            id="max-price"
-            v-model="maxPrice"
-            type="number"
-            placeholder="Max Price: 600"
-            debounce="1000"
-          ></b-form-input>
-        </b-input-group>
-      </b-form>
-    </div>
-  </b-form>
+        <b-form inline class="coveredDiseases">
+          <div class="tag-options">
+            <b-form-group label>
+              <b-form-tags
+                v-model="selectedCoveredDiseasesPrograms"
+                size="lg"
+                add-on-change
+                no-outer-focus
+              >
+                <template v-slot="{ tags, inputAttrs, inputHandlers, disabled, removeTag }">
+                  <b-form-select
+                    v-bind="inputAttrs"
+                    v-on="inputHandlers"
+                    :disabled="disabled || coveredDiseaseOptions.length === 0"
+                    :options="coveredDiseaseOptions"
+                  >
+                    <template v-slot:first>
+                      <option disabled value>Covered Disease Programs</option>
+                    </template>
+                  </b-form-select>
+                  <ul v-if="tags.length > 0" class="list-inline d-inline-block mb-1">
+                    <li v-for="tag in tags" :key="tag" class="list-inline-item">
+                      <b-form-tag
+                        @remove="removeTag(tag)"
+                        :title="tag"
+                        :disabled="disabled"
+                        variant="info"
+                      >{{ tag }}</b-form-tag>
+                    </li>
+                  </ul>
+                </template>
+              </b-form-tags>
+            </b-form-group>
+          </div>
+        </b-form>
+      </div>
+    </b-form>
+  </div>
 </template>
 
 <script>
-import axios from "axios";
-import {
-  statesWithInsurancePlans,
-  endpoints,
-  stateMatching,
-  defaultCoveredDiseaseOptions
-} from "../constants.js";
-
 export default {
   name: "GeneralFilters",
   components: {},
-  props: ["insuranceQualities", "defaultOptions", "selectedStateFromMap"],
+  props: ["insuranceQualities"],
   data() {
     return {
-      showStateOption: true,
-      ageOptions: [{ value: null, text: "All" }].concat(this._.range(18, 31)),
-      availableStateList: [],
-      planTypeOptions: ["EPO", "PPO", "HMO", "POS"],
-      selectedAge: null,
-      selectedState: null,
-      selectedStateFromFilter: null,
-      selectedPlanType: ["EPO", "PPO", "HMO", "POS"],
-      coveredDiseaseProgramsSelected: [],
-      minPrice: null,
-      maxPrice: null,
-      doNotUpdateSelectedStateFromMap: false,
-      doNotUpdateSelectedStateFromFilter: false
+      availableStateList: []
     };
   },
   computed: {
-    coveredDiseaseOptions() {
-      return defaultCoveredDiseaseOptions;
+    selectedAge: {
+      get() {
+        return this.$store.state.selectedFilters.age;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateContentBySelectedFilter", {
+          newVal,
+          filterType: "age"
+        });
+      }
     },
-    filtersGroup() {
-      let min = isNaN(parseInt(this.minPrice)) ? null : parseInt(this.minPrice);
-      let max = isNaN(parseInt(this.maxPrice)) ? null : parseInt(this.maxPrice);
-      let age = this.selectedAge ? this._.toString(this.selectedAge) : null;
-
-      let filtersGroup = {
-        StateCode: this.selectedState,
-        Age: age,
-        PlanType: this.selectedPlanType,
-        CoveredDiseases: this.coveredDiseaseProgramsSelected,
-        IndividualRateRange: { min, max }
-      };
-
-      this.$emit("update:filtersGroup", filtersGroup);
-      console.log(">> Emit filtersGroup from Filters:", filtersGroup);
-      return filtersGroup;
+    selectedCoveredDiseasesPrograms: {
+      get() {
+        return this.$store.state.selectedFilters.coveredDiseasesPrograms;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateContentBySelectedFilter", {
+          newVal,
+          filterType: "coveredDiseasesPrograms"
+        });
+      }
+    },
+    selectedPlanType: {
+      get() {
+        return this.$store.state.selectedFilters.planType;
+      },
+      set(newVal) {
+        // TODO: infinite loop
+        console.log("> selectedPlanType Changed");
+        this.$store.dispatch("updateContentBySelectedFilter", {
+          newVal,
+          filterType: "planType"
+        });
+      }
+    },
+    selectedState: {
+      get() {
+        return this.$store.state.selectedFilters.state.code;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateContentBySelectedFilter", {
+          newVal,
+          filterType: "state",
+          type: "code"
+        });
+      }
+    },
+    selectedMinPrice: {
+      get() {
+        return this.$store.state.selectedFilters.price.min;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateContentBySelectedFilter", {
+          newVal,
+          filterType: "price",
+          type: "min"
+        });
+      }
+    },
+    selectedMaxPrice: {
+      get() {
+        return this.$store.state.selectedFilters.price.max;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateContentBySelectedFilter", {
+          newVal,
+          filterType: "price",
+          type: "max"
+        });
+      }
+    },
+    ageOptions() {
+      return this.$store.getters.ageOptions;
     },
     stateOptions() {
-      if (this.availableStateList.length) {
-        let updatedSet = new Set(this.availableStateList);
-        let updated = statesWithInsurancePlans.map(function(state) {
-          return {
-            value: state,
-            text: state,
-            disabled: !updatedSet.has(state)
-          };
-        });
-        return [{ value: null, text: "State" }].concat(
-          this._.sortBy(updated, ["value"])
-        );
-      }
-      return [{ value: null, text: "State" }].concat(
-        statesWithInsurancePlans.sort()
-      );
+      return this.$store.getters.stateOptions;
+    },
+    coveredDiseaseOptions() {
+      console.log(this.$store.getters.coveredDiseasesProgramsOptions);
+      return this.$store.getters.coveredDiseasesProgramsOptions;
+    },
+    planTypeOptions() {
+      return this.$store.getters.planTypeOptions;
     }
   },
   mounted() {
     this.$store.commit("filterIsLoading", false);
   },
   methods: {
-    async getAvailableFilterLists() {
-      try {
-        const res = await axios.post(endpoints.insurancePlans, {
-          crossDomain: true,
-          query: `query getFiltersListOfPlan ($StateCode: String, $Age: String, $PlanType: [String], $CoveredDiseases: [String], $IndividualRateRange: PriceRangeType) {\n    FiltersListOfPlan (StateCode: $StateCode, Age: $Age, PlanType: $PlanType, CoveredDiseases: $CoveredDiseases, IndividualRateRange: $IndividualRateRange) {
-            StateCode
-            Age
-            PlanType
-            CoveredAsthma
-            CoveredDepression
-            CoveredDiabetes
-            CoveredHeartDisease
-            CoveredHighBloodPressureCholesterol
-            CoveredLowBackPain
-            CoveredPainManagement
-            CoveredPregnancy
-            CoveredWeightLossPrograms}\n}`,
-          variables: {
-            StateCode: this.filtersGroup.StateCode,
-            Age: this.filtersGroup.Age,
-            PlanType: this.filtersGroup.PlanType,
-            CoveredDiseases: this.filtersGroup.CoveredDiseases,
-            IndividualRateRange: this.filtersGroup.IndividualRateRange
-          }
-        });
-        return res.data.data.FiltersListOfPlan;
-      } catch (e) {
-        console.log("err", e);
-        console.log("inside of getAvailableFilterLists()");
-        return [];
-      }
-    },
-    async extractDistinctFiltersList(sourceFilter) {
-      this.$store.commit("filterIsLoading", true);
-
-      let result = await this.getAvailableFilterLists();
-      let distinctStateCode = [
-        ...new Set(this._.map(result, row => row.StateCode))
-      ];
-      let distinctPlanType = [
-        ...new Set(this._.map(result, row => row.PlanType))
-      ];
-      let distinctAge = [...new Set(this._.map(result, row => row.Age))];
-      // let distinctMetalLevel = {
-      //   Bronze: this._.find(result, ["MetalLevel", "Bronze"]),
-      //   ExpandedBronze: this._.find(result, ["MetalLevel", "Expanded Bronze"])
-      // };
-      let distinctCoveredDiseasePrograms = {
-        Asthma: this._.find(result, ["CoveredAsthma", "True"]),
-        Depression: this._.find(result, ["CoveredDepression", "True"]),
-        Diabetes: this._.find(result, [("CoveredDiabetes", "True")]),
-        HeartDisease: this._.find(result, [("CoveredHeartDisease", "True")]),
-        HighBloodPressureCholesterol: this._.find(
-          result[("CoveredHighBloodPressureCholesterol", "True")]
-        ),
-        LowBackPain: this._.find(result, [("CoveredLowBackPain", "True")]),
-        PainManagement: this._.find(result[("CoveredPainManagement", "True")]),
-        Pregnancy: this._.find(result, [("CoveredPregnancy", "True")]),
-        WeightLossPrograms: this._.find(
-          result[("CoveredWeightLossPrograms", "True")]
-        )
-      };
-
-      if (sourceFilter != "PlanType") {
-        // let disabledSet = new Set();
-        let updatedPlanOptions = this.planTypeOptions.map(plan => {
-          let hasValue = new Set(distinctPlanType).has(plan.text || plan);
-          // if (!hasValue) {
-          //   disabledSet.add(plan.text || plan);
-          // }
-          return {
-            text: plan.text || plan,
-            value: hasValue ? plan.text || plan : null,
-            disabled: !hasValue
-          };
-        });
-
-        console.log(">>> updatedPlanOptions", updatedPlanOptions);
-        this.planTypeOptions = updatedPlanOptions;
-        // this.selectedPlanType = this._.filter(this.selectedPlanType, plan => {
-        //   !disabledSet.has(plan);
-        // });
-      }
-      if (sourceFilter != "Age") {
-        let ageSet = new Set(distinctAge);
-        this.availableAgeOptions = [{ value: null, text: "All" }].concat(
-          this._.range(18, 31).map(function(age) {
-            return { text: age, disabled: !ageSet.has(age) };
-          })
-        );
-      }
-
-      if (sourceFilter != "CoveredDiseases") {
-        defaultCoveredDiseaseOptions.map(function(program) {
-          return distinctCoveredDiseasePrograms[program]
-            ? program
-            : { text: program, disabled: true };
-        });
-      }
-
-      // if (sourceFilter != "MetalLevel") {
-      //   this.metalLevelOptions = distinctMetalLevel;
-      // }
-
-      if (sourceFilter != "StateCode") {
-        // TODO: Bugs
-        let resultWithOnlyPreselectedState =
-          distinctStateCode.length == 1 &&
-          distinctStateCode[0] == this.selectedState;
-
-        console.log(
-          ">> resultWithOnlyPreselectedState",
-          resultWithOnlyPreselectedState
-        );
-
-        if (!resultWithOnlyPreselectedState) {
-          this.availableStateList = distinctStateCode;
-        }
-      } else {
-        // Triggered by state filter
-        if (!this.selectedState) {
-          this.availableStateList = distinctStateCode;
-        }
-      }
-      this.$store.commit("filterIsLoading", false);
-      return;
+    resetFilters() {
+      this.$store.dispatch("resetFilters");
     },
     onCoveredDiseaseOptionClick({ option, addTag }) {
       addTag(option);
       this.coveredDiseaseSearch = "";
-    },
-    handleVisibility(showStateOption) {
-      this.showStateOption = showStateOption;
-    },
-    toggleAll(checked) {
-      this.coveredDiseaseProgramsSelected = checked
-        ? this.coveredDiseaseOptions.slice()
-        : [];
-    }
-  },
-  watch: {
-    // coveredDiseaseProgramsSelected(newVal) {
-    //   // Handle changes in individual flavour checkboxes
-    //   if (newVal.length === 0) {
-    //     this.indeterminateCoveredDiseasePrograms = false;
-    //     this.allCoveredDiseaseProgramsSelected = false;
-    //   } else if (newVal.length === this.coveredDiseaseOptions.length) {
-    //     this.indeterminateCoveredDiseasePrograms = false;
-    //     this.allCoveredDiseaseProgramsSelected = true;
-    //   } else {
-    //     this.indeterminateCoveredDiseasePrograms = true;
-    //     this.allCoveredDiseaseProgramsSelected = false;
-    //   }
-    // },
-    selectedPlanType() {
-      console.log("> selectedPlanType Changed");
-      this.extractDistinctFiltersList("PlanType");
-      // Did not update min and max price
-    },
-    coveredDiseaseProgramsSelected() {
-      console.log("> selectedCoveredDiseasePrograms Changed");
-      this.extractDistinctFiltersList("CoveredDiseases");
-    },
-    selectedAge() {
-      console.log("> selectedAge Changed");
-      this.extractDistinctFiltersList("Age");
-    },
-    selectedState() {
-      console.log("> selectedState Changed");
-      this.extractDistinctFiltersList("StateCode");
-    },
-    selectedStateFromMap(newVal, oldVal) {
-      if (this.doNotUpdateSelectedStateFromFilter) {
-        this.doNotUpdateSelectedStateFromFilter = false;
-        return;
-      }
-      if (newVal != oldVal) {
-        this.doNotUpdateSelectedStateFromMap = true;
-        this.selectedStateFromFilter = stateMatching[newVal.State];
-        this.selectedState = stateMatching[newVal.State];
-      }
-    },
-    selectedStateFromFilter(newVal, oldVal) {
-      if (this.doNotUpdateSelectedStateFromMap) {
-        this.doNotUpdateSelectedStateFromMap = false;
-        return;
-      }
-
-      if (newVal != oldVal) {
-        // this.$emit("update:selectedStateFromMap", stateCodeToName[newVal]);
-        this.doNotUpdateSelectedStateFromFilter = true;
-        this.selectedState = newVal;
-      }
     }
   }
 };
 </script>
 
 <style scoped>
-.exposed-filters {
+#filter-section {
   position: fixed;
-  right: 15px;
-  top: 15px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  z-index: 10;
+  min-width: 1000px;
+  background-color: var(--primary-grey);
+  padding-bottom: 15px;
+  box-shadow: 0px 4px 20px rgba(14, 30, 94, 0.1);
 }
 
-.exposed-filters .list-inline .list-inline-item {
-  margin: 3px;
-  max-width: 90px;
+#filter-header {
+  background-color: var(--optional-blue);
+  width: 100vw;
+  height: 44px;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.site-tag {
+  margin: auto 0 6px 75px;
+  font-weight: bold;
+  font-size: 26px;
+}
+
+.site-short-desc {
+  margin: auto 0 8px 15px;
+  font-size: 14px;
+}
+
+.filter-info-section {
+  display: inline-table;
+}
+
+.filter-title {
+  display: inline-flex;
+  margin: 25px 0 auto 75px;
+}
+
+.filter-title img {
+  width: 15px;
+  height: 15px;
+  display: inline-table;
+  margin: auto;
+}
+
+.filter-title div {
+  color: var(--optional-blue);
+  font-size: 18px;
+  font-weight: bold;
+  margin-left: 5px;
+  display: inline-table;
+}
+
+.filter-info {
+  color: var(--hover-grey);
+  font-size: 14px;
+  margin: auto 0 auto 24px;
+}
+
+.filter-info {
+  display: inline-flex;
+}
+
+.filter-info .b-icon.bi {
+  margin: auto;
+}
+
+.reset-button {
+  position: fixed;
+  right: 65px;
+  top: 99px;
+}
+
+.filter-row {
+  width: 1000px;
+  display: flex;
+  justify-content: space-evenly;
+  margin: 15px 0 auto 63px;
+}
+
+.filter-labels {
+  width: 70px;
+}
+
+.coveredDiseases {
+  margin: 15px 0 auto 74px;
+}
+
+.exposed-filters {
+  width: 100vw;
+  /* height: 150px; */
+  display: flex;
+  flex-flow: column;
+  z-index: 10;
 }
 
 .exposed-filters .form-control {
@@ -400,13 +314,27 @@ export default {
   border-radius: none;
   background-color: transparent;
   padding: 0;
-  text-align: end;
-  margin-top: 5px;
+  text-align: center;
 }
 
-.exposed-filters .form-control .custom-select {
-  margin-left: 5px;
-  width: 160px;
+.exposed-filters .coveredDiseases {
+  min-width: 1200px;
+}
+
+.exposed-filters .coveredDiseases .form-control .custom-select {
+  margin-right: 10px;
+  width: 230px;
+  vertical-align: top;
+  margin-top: 3px;
+  float: left;
+}
+
+.exposed-filters .list-inline {
+  float: left;
+}
+
+.exposed-filters .list-inline .list-inline-item {
+  margin: 3px;
 }
 
 .input-group-prepend {
@@ -415,27 +343,8 @@ export default {
 
 #min-price,
 #max-price {
-  width: 120px;
-  margin-left: 5px;
   border: 1px solid #ced4da;
   border-radius: 0.25rem;
   background-color: white;
 }
-/*
-.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
-  border-color: var(--optional-blue) !important;
-  background-color: var(--optional-blue) !important;
-}
-
-.custom-checkbox
-  .custom-control-input:checked:focus
-  ~ .custom-control-label::before {
-  box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(0, 255, 0, 0.25);
-}
-.custom-checkbox .custom-control-input:focus ~ .custom-control-label::before {
-  box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
-}
-.custom-checkbox .custom-control-input:active ~ .custom-control-label::before {
-  background-color: #c8ffc8;
-} */
 </style>

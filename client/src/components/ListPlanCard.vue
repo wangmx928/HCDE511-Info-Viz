@@ -1,13 +1,11 @@
 <template>
   <div class="listed-plan-card">
-    <b-button>isLoading: {{isLoading}}</b-button>
-
     <div v-if="showErrorMessage">Sorry we've encountered some errors.</div>
 
     <div class="content">
       <div class="title">{{title}}</div>
 
-      <div class="description" v-for="(plan, index) in retrivedPlans" :key="plan.PlanId">
+      <div class="description" v-for="(plan, index) in plans" :key="plan.PlanId">
         <p v-b-tooltip.hover.left.v-info :title="toolTipTexts[plan.PlanId]">
           <b-icon icon="info" font-scale="1"></b-icon>
           {{index + 1}}. {{plan.PlanMarketingName}} - ${{plan.IndividualRate}}
@@ -18,26 +16,22 @@
 </template>
 
 <script>
-import axios from "axios";
-import { endpoints } from "../constants.js";
-
 export default {
   name: "ListPlanCard",
   components: {},
-  props: ["filtersGroup", "title", "cardType", "plans"],
+  props: ["title"],
   data() {
     return {
-      showErrorMessage: false,
-      retrivedPlans: []
+      showErrorMessage: false
     };
   },
   computed: {
-    isLoading() {
-      return this.$store.state.isLoading.planBasedView.cheapestPlan;
+    plans() {
+      return this.$store.state.cheapestPlans;
     },
     toolTipTexts: function() {
       return this._.reduce(
-        this.retrivedPlans,
+        this.plans,
         function(result, plan) {
           result[
             plan.PlanId
@@ -48,65 +42,8 @@ export default {
       );
     }
   },
-  methods: {
-    async getCheapestPlans() {
-      try {
-        let res = {};
-        console.log(">> getCheapestPlans: has filtersGroup", this.filtersGroup);
-        res = await axios.post(endpoints.insurancePlans, {
-          crossDomain: true,
-          query: `query getCheapestPlansByParam ($StateCode: String, $Age: String, $PlanType: [String], $CoveredDiseases: [String], $IndividualRateRange: PriceRangeType ){\n    CheapestPlansByParams (StateCode:$StateCode, Age: $Age, PlanType: $PlanType, CoveredDiseases: $CoveredDiseases, IndividualRateRange: $IndividualRateRange) {\n
-            StateCode
-            PlanId
-            PlanType
-            PlanMarketingName
-            IndividualRate
-            CoveredDiseasesCount
-            SBCHavingaBabyDeductible
-            SBCHavingaBabyCopayment
-            SBCHavingaBabyCoinsurance
-            SBCHavingaBabyLimit
-            SBCHavingDiabetesDeductible
-            SBCHavingDiabetesCopayment
-            SBCHavingDiabetesCoinsurance
-            SBCHavingDiabetesLimit
-            SBCHavingSimplefractureDeductible
-            SBCHavingSimplefractureCopayment
-            SBCHavingSimplefractureCoinsurance
-          }
-        }`,
-          variables: {
-            StateCode: this.filtersGroup.StateCode,
-            Age: this.filtersGroup.Age,
-            PlanType: this.filtersGroup.PlanType,
-            CoveredDiseases: this.filtersGroup.CoveredDiseases,
-            IndividualRateRange: this.filtersGroup.IndividualRateRange
-          }
-        });
-        this.retrivedPlans = res.data.data.CheapestPlansByParams;
-        // }
-      } catch (e) {
-        console.log("err", e);
-        this.$store.commit("cheapestPlanIsLoading", false);
-        this.showErrorMessage = true;
-        this.retrivedPlans = [];
-      }
-    }
-  },
-  watch: {
-    filtersGroup() {
-      if (
-        this.cardType == "isCheapestPlan" &&
-        !this._.isEmpty(this.filtersGroup)
-      ) {
-        this.getCheapestPlans();
-      }
-    },
-    retrivedPlans(newVal) {
-      this.$emit("update:plans", newVal);
-      console.log(">> Emit plans from ListPlanCard:", newVal);
-      this.$store.commit("cheapestPlanIsLoading", false);
-    }
+  mounted() {
+    this.$store.dispatch("updateCheapestPlan");
   }
 };
 </script>

@@ -1,13 +1,7 @@
 <template>
   <div id="plan-based-view">
     <div deck class="list-plans">
-      <!-- <ListPlanCard title="Best Coverage Plans" cardType="isBestCoverage" v-bind:filtersGroup="filtersGroup"/> -->
-      <ListPlanCard
-        title="Cheapest Plans"
-        cardType="isCheapestPlan"
-        v-bind:filtersGroup="filtersGroup"
-        v-bind:plans.sync="plans"
-      />
+      <ListPlanCard title="Cheapest Plans" />
     </div>
 
     <div deck class="list-plans">
@@ -31,6 +25,7 @@
 </template>
 
 <script>
+import { mapState } from "vuex";
 import ListPlanCard from "./ListPlanCard.vue";
 import Highcharts from "highcharts";
 
@@ -40,14 +35,13 @@ require("highcharts/modules/exporting")(Highcharts);
 
 export default {
   name: "PlanBased",
-  props: ["filtersGroup"],
+  props: [],
   components: {
     ListPlanCard
   },
   data() {
     return {
       spiderChart: null,
-      plans: [],
       selectedAttribute: null,
       selectedAttributeLists: [],
       matchHash: {
@@ -67,12 +61,14 @@ export default {
       }
     };
   },
+  computed: mapState(["cheapestPlans"]),
   methods: {
-    getSpiderChartOptions() {
+    getSpiderChartOptions(cheapestPlans) {
+      console.log(">getSpiderChartOptions");
       let seriesData = null;
-      if (this.plans && this.plans.length) {
+      if (cheapestPlans && cheapestPlans.length) {
         let attributesHash = this._.reduce(
-          this.plans,
+          cheapestPlans,
           (result, plan) => {
             result["IndividualRate"].push(plan.IndividualRate);
             result["CoveredDiseasesCount"].push(plan.CoveredDiseasesCount);
@@ -137,7 +133,7 @@ export default {
           };
         })(this);
 
-        seriesData = this.plans.map(function(plan) {
+        seriesData = cheapestPlans.map(function(plan) {
           return {
             name: plan.PlanMarketingName,
             events: {
@@ -203,9 +199,7 @@ export default {
       let spirderGraphOption = {
         chart: {
           polar: true,
-          type: "line",
-          height: 700,
-          width: 800
+          type: "line"
         },
         title: {
           text: "Top 3 Chpeapest Insurance Plans Comparison - Ranking",
@@ -252,36 +246,58 @@ export default {
           verticalAlign: "middle",
           layout: "vertical"
         },
-        series: seriesData
+        series: seriesData,
+        responsive: {
+          rules: [
+            {
+              condition: {
+                maxWidth: 800
+              },
+              chartOptions: {
+                legend: {
+                  align: "center",
+                  verticalAlign: "bottom",
+                  layout: "horizontal"
+                }
+              }
+            }
+          ]
+        }
       };
 
       return spirderGraphOption;
     }
   },
+  mounted() {
+    this.$store.watch(
+      state => state.cheapestPlans,
+      newVal => {
+        this.$store.commit("spiderChartIsLoading", true);
+
+        if (this.spiderChart) {
+          this.spiderChart.update(this.getSpiderChartOptions(newVal));
+        } else {
+          this.spiderChart = Highcharts.chart(
+            "planBasedComparison",
+            this.getSpiderChartOptions(newVal)
+          );
+        }
+
+        if (this.selectedAttribute) {
+          this.selectedAttributeLists = this._.sortBy(
+            newVal,
+            this.matchHash[this.selectedAttribute]
+          );
+        }
+
+        this.$store.commit("spiderChartIsLoading", false);
+      }
+    );
+  },
   watch: {
-    plans(newVal) {
-      this.$store.commit("spiderChartIsLoading", true);
-      if (this.spiderChart) {
-        this.spiderChart.update(this.getSpiderChartOptions());
-      } else {
-        this.spiderChart = Highcharts.chart(
-          "planBasedComparison",
-          this.getSpiderChartOptions()
-        );
-      }
-
-      if (this.selectedAttribute) {
-        this.selectedAttributeLists = this._.sortBy(
-          newVal,
-          this.matchHash[this.selectedAttribute]
-        );
-      }
-
-      this.$store.commit("spiderChartIsLoading", false);
-    },
     selectedAttribute(newVal) {
       this.selectedAttributeLists = this._.sortBy(
-        this.plans,
+        this.cheapestPlans,
         this.matchHash[newVal]
       );
     }

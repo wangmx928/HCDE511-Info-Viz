@@ -1,51 +1,63 @@
 <template>
   <div id="state-based-view">
-    <div v-b-visible="handleStatsVisibility" class="stats-badge vertical">
-      <StatsCard title="State" v-bind:value="highlightedState.State" />
-      <StatsCard
-        title="US News Rank"
-        v-bind:value="`#${highlightedState.USNewsRank}`"
-        v-bind:toolTip="stateWithHighestRank"
-        type="USNewsRank"
-      />
-      <StatsCard
-        title="Composite Score"
-        v-bind:value="highlightedState.WalletHubCompositeScore"
-        v-bind:toolTip="stateWithHighestCompScore"
-        type="WalletHubCompositeScore"
-      />
-      <StatsCard
-        title="Avg Monthly Price"
-        v-bind:value="`$${highlightedState.AverageMonthlyPrice}`"
-      />
+    <div class="state-info-section">
+      <div class="state-title">
+        <img alt="State-based View Icon" src="../assets/state.png" />
+        <div>STATE-BASED</div>
+      </div>
+
+      <div class="state-info">
+        <b-icon icon="info" font-scale="1"></b-icon>
+        <div>Hover/click to see more information.</div>
+      </div>
     </div>
 
-    <transition name="fade">
-      <div v-if="showFixedCollapsedStats && highlightedState.State != '-'" class="floated-stats">
-        <StatsCard v-bind:value="highlightedState.State" noIcon="true" />
+    <div id="state-map">
+      <div v-b-visible="handleStatsVisibility" class="stats-badge vertical">
+        <StatsCard title="State" v-bind:value="highlightedState.State" />
         <StatsCard
+          title="US News Rank"
           v-bind:value="`#${highlightedState.USNewsRank}`"
+          v-bind:toolTip="stateWithHighestRank"
           type="USNewsRank"
-          noIcon="true"
         />
         <StatsCard
+          title="Composite Score"
           v-bind:value="highlightedState.WalletHubCompositeScore"
+          v-bind:toolTip="stateWithHighestCompScore"
           type="WalletHubCompositeScore"
         />
-        <StatsCard v-bind:value="`$${highlightedState.AverageMonthlyPrice}`" />
+        <StatsCard
+          title="Avg Monthly Price"
+          v-bind:value="`$${highlightedState.AverageMonthlyPrice}`"
+        />
       </div>
-    </transition>
 
-    <div v-if="showErrorMessage">Error, please refresh the page...</div>
+      <transition name="fade">
+        <div v-if="showFixedCollapsedStats && highlightedState.State != '-'" class="floated-stats">
+          <StatsCard v-bind:value="highlightedState.State" noIcon="true" />
+          <StatsCard
+            v-bind:value="`#${highlightedState.USNewsRank}`"
+            type="USNewsRank"
+            noIcon="true"
+          />
+          <StatsCard
+            v-bind:value="highlightedState.WalletHubCompositeScore"
+            type="WalletHubCompositeScore"
+          />
+          <StatsCard v-bind:value="`$${highlightedState.AverageMonthlyPrice}`" />
+        </div>
+      </transition>
 
-    <div id="tile-map"></div>
+      <div v-if="showErrorMessage">Error, please refresh the page...</div>
+      <div id="tile-map"></div>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
 import Highcharts from "highcharts";
-import { endpoints, stateGeoLocations, stateCodeToName } from "../constants.js";
+import { stateGeoLocations, stateNameToCode } from "../constants.js";
 import StatsCard from "./StatsCard.vue";
 
 // Load module after Highcharts is loaded
@@ -56,10 +68,9 @@ require("highcharts/modules/tilemap")(Highcharts);
 export default {
   name: "StateBased",
   components: { StatsCard },
-  props: ["insuranceQualities", "filtersGroup", "selectedStateFromMap"],
+  props: ["insuranceQualities"],
   data() {
     return {
-      AvgStatePremium: [{}],
       tileMapChart: null,
       showFixedCollapsedStats: false,
       showErrorMessage: false,
@@ -72,6 +83,15 @@ export default {
     };
   },
   computed: {
+    selectedStateFilterName() {
+      return this.$store.state.selectedFilters.state.name;
+    },
+    averageStatePremium() {
+      return this.$store.state.averageStatePremium;
+    },
+    averageStatePremiumPriceRange() {
+      return this.$store.state.averageStatePremiumPriceRange;
+    },
     stateWithHighestCompScore() {
       return this._.maxBy(this.insuranceQualities, "WalletHubCompositeScore");
     },
@@ -82,34 +102,6 @@ export default {
   methods: {
     handleStatsVisibility(isVisible) {
       this.showFixedCollapsedStats = !isVisible;
-    },
-    async getAvgMonthlyPremiumByParams() {
-      try {
-        const res = await axios.post(endpoints.insurancePlans, {
-          crossDomain: true,
-          query: `query getAvgStatePremiumByParams ($Age: String, $PlanType: [String], $CoveredDiseases: [String], $IndividualRateRange: PriceRangeType) {
-          AvgStatePremiumByParams ( Age: $Age, PlanType: $PlanType, CoveredDiseases: $CoveredDiseases, IndividualRateRange: $IndividualRateRange) {
-            StateCode
-            AvgMonthlyPremium
-          }}`,
-          variables: {
-            Age: this.filtersGroup.Age,
-            PlanType: this.filtersGroup.PlanType,
-            CoveredDiseases: this.filtersGroup.CoveredDiseases,
-            IndividualRateRange: this.filtersGroup.IndividualRateRange
-          }
-        });
-
-        this.AvgStatePremium = res.data.data.AvgStatePremiumByParams;
-        console.log("> getAvgMonthlyPremiumByParams: Has data returned");
-        return;
-      } catch (e) {
-        console.log("err", e);
-        // Should work on retry later
-        this.$store.commit("stateBasedViewIsLoading", false);
-        this.showErrorMessage = true;
-        return;
-      }
     },
     generateTileMap(seriesData) {
       let chartOptions = {
@@ -175,7 +167,23 @@ export default {
           padding: 0,
           y: -20
         },
-        series: seriesData
+        series: seriesData,
+        responsive: {
+          rules: [
+            {
+              condition: {
+                maxWidth: 500
+              },
+              chartOptions: {
+                legend: {
+                  align: "center",
+                  verticalAlign: "bottom",
+                  layout: "horizontal"
+                }
+              }
+            }
+          ]
+        }
       };
       if (!this.tileMapChart) {
         this.tileMapChart = Highcharts.chart("tile-map", chartOptions);
@@ -188,67 +196,58 @@ export default {
       return;
     }
   },
+  mounted() {
+    this.$store.dispatch("updateStateMap");
+  },
   watch: {
-    filtersGroup(newVal, oldVal) {
-      this.$store.commit("stateBasedViewIsLoading", true);
-      this.getAvgMonthlyPremiumByParams();
-
-      if (newVal.StateCode != oldVal.StateCode) {
-        // State changed by the filter
+    selectedStateFilterName(newVal) {
+      if (!newVal) {
+        this.highlightedState = {
+          State: "-",
+          USNewsRank: "-",
+          WalletHubCompositeScore: "-",
+          AverageMonthlyPrice: "-"
+        };
+      } else {
         this.highlightedState = this._.find(this.insuranceQualities, o => {
-          return o.State == stateCodeToName[newVal.StateCode];
+          return o.State == newVal;
         });
       }
     },
-    AvgStatePremium() {
-      let statePriceHash = {};
-
-      // Converting retrived data response: {${StateCode}: AvgMonthlyPremium}
-      if (!this._.isEmpty(this.AvgStatePremium[0])) {
-        statePriceHash = this._.reduce(
-          this.AvgStatePremium,
-          function(res, row) {
-            res[row.StateCode] = row.AvgMonthlyPremium;
-            return res;
-          },
-          {}
-        );
-      }
-
+    averageStatePremium() {
       let tileMapSeriesData = [
         {
           name: "AverageMonthlyRatePerState",
-          min: this._.minBy(this.AvgStatePremium, "AvgMonthlyPremium"),
-          max: this._.maxBy(this.AvgStatePremium, "AvgMonthlyPremium"),
+          min: this.averageStatePremiumPriceRange.min,
+          max: this.averageStatePremiumPriceRange.max,
           cursor: "pointer",
           events: {
             click: event => {
               //TODO: Work on the greying out effect
-              this.highlightedState = this._.find(
-                this.insuranceQualities,
-                o => {
-                  return o.State == event.point.name;
-                }
-              );
-
-              if (this.highlightedState) {
-                this.highlightedState.AverageMonthlyPrice = event.point.value;
-                this.$emit(
-                  "update:selectedStateFromMap",
-                  this.highlightedState
+              if (this.averageStatePremium[stateNameToCode[event.point.name]]) {
+                this.highlightedState = this._.find(
+                  this.insuranceQualities,
+                  o => {
+                    return o.State == event.point.name;
+                  }
                 );
-                // TODO: Add logic for updating state filters
+                this.highlightedState.AverageMonthlyPrice = event.point.value;
+                this.$store.dispatch("updateContentBySelectedFilter", {
+                  newVal: this.highlightedState.State,
+                  filterType: "state",
+                  type: "name"
+                });
               } else {
                 console.log(
-                  "could not find highlights state: ",
+                  "No data for the clicked state: ",
                   event.point.name
                 );
               }
             }
           },
           data: stateGeoLocations.map(point => {
-            if (statePriceHash[point.stateCode]) {
-              point.value = statePriceHash[point.stateCode];
+            if (this.averageStatePremium[point.stateCode]) {
+              point.value = this.averageStatePremium[point.stateCode];
               point.color = null;
             } else {
               point.value = null;
@@ -261,7 +260,6 @@ export default {
           })
         }
       ];
-      console.log("tileMapSeriesData: ", tileMapSeriesData);
       this.generateTileMap(tileMapSeriesData);
     }
   }
@@ -270,11 +268,53 @@ export default {
 
 <style>
 #state-based-view {
+  padding-top: 270px;
+}
+
+#state-map {
   width: 90vw;
   margin: auto;
-  margin-top: 100px;
   display: inline-flex;
   justify-content: space-evenly;
+}
+
+.state-info-section {
+  display: inline-flex;
+  align-items: center;
+}
+
+.state-title {
+  display: inline-flex;
+  margin-left: 75px;
+}
+
+.state-title img {
+  width: 47px;
+  height: 32px;
+  display: inline-table;
+  margin: auto;
+}
+
+.state-title div {
+  color: var(--optional-blue);
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 5px;
+  display: inline-table;
+}
+
+.state-info {
+  color: var(--hover-grey);
+  font-size: 14px;
+  margin-left: 24px;
+}
+
+.state-info {
+  display: inline-flex;
+}
+
+.state-info .b-icon.bi {
+  margin: auto;
 }
 
 .stats-badge {
@@ -328,5 +368,8 @@ export default {
 
 .floated-stats .stats-card .description {
   font-size: 16px;
+}
+
+@media screen and (min-width: 480px) {
 }
 </style>

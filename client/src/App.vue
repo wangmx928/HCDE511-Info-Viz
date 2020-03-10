@@ -2,25 +2,13 @@
   <div id="app">
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <Loading />
-    <GeneralFilters
-      v-bind:insuranceQualities="insuranceQualities"
-      v-bind:filtersGroup.sync="filtersGroup"
-      v-bind:selectedStateFromMap="selectedStateFromMap"
-      defaultOptions="defaultFilterOptions"
-      ref="GeneralFilters"
-      :key="filterComponentKey"
-    />
-    <b-button variant="outline-primary" v-on:click="resetFilters" style>Reset All</b-button>
-    <div class="debug-text" style>(debug): {{ filtersGroup }}</div>
+    <GeneralFilters v-bind:insuranceQualities="insuranceQualities" />
+
     <Navigation />
 
-    <StateBased
-      v-bind:insuranceQualities="insuranceQualities"
-      v-bind:selectedStateFromMap.sync="selectedStateFromMap"
-      v-bind:filtersGroup="filtersGroup"
-    />
+    <StateBased v-bind:insuranceQualities="insuranceQualities" />
 
-    <PlanBased v-bind:filtersGroup="filtersGroup" />
+    <PlanBased />
   </div>
 </template>
 
@@ -44,22 +32,11 @@ export default {
   },
   data() {
     return {
-      filtersGroup: {},
       insuranceQualities: [{}],
-      filterComponentKey: 0,
       selectedStateFromMap: null
     };
   },
-  computed: {
-    count() {
-      return this.$store.state.count;
-    }
-  },
   methods: {
-    resetFilters() {
-      this.filterComponentKey += 1;
-      console.log("reset Filters", this.filterComponentKey);
-    },
     async getAllHealthInsuranceQuality() {
       try {
         const res = await axios.post(endpoints.insuranceQuality, {
@@ -96,15 +73,24 @@ export default {
   --theme-blue: #3078b5;
   --optional-blue: #2b5c8a;
   --light-grey: #f4f7fa;
+  --hover-grey: #4b555b;
+}
+
+body {
+  min-width: 1200px;
 }
 
 #app {
   background-color: var(--primary-grey);
   margin: 0;
-  min-width: 1200px;
   font-family: "PT Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.highcharts-container {
+  position: initial !important;
+  z-index: auto !important;
 }
 
 code {
