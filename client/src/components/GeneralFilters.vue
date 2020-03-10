@@ -1,31 +1,13 @@
 <template>
   <b-form>
-    <!-- Exposed cells -->
-    <!-- Keep this for the computed property -->
-    <div class="debug-text" style="display: none">(debug): {{ filtersGroup }}</div>
+    <div class="debug-text">(debug): {{ filtersGroup }}</div>
 
     <div class="exposed-filters">
       <b-form inline>
-        <!-- <b-form-checkbox
-          v-model="allCoveredDiseaseProgramsSelected"
-          :indeterminate="indeterminateCoveredDiseasePrograms"
-          aria-describedby="coveredDiseasePrograms"
-          aria-controls="coveredDiseasePrograms"
-          @change="toggleAll"
-        >{{ allCoveredDiseaseProgramsSelected ? 'Un-select All' : 'Select All' }}</b-form-checkbox>
-
-        <b-form-checkbox-group
-          v-model="coveredDiseaseProgramsSelected"
-          :options="coveredDiseaseOptions"
-          name="coveredDiseasePrograms"
-          class="ml-4"
-          aria-label="Individual Covered Disease Program"
-        ></b-form-checkbox-group>-->
-
         <div class="tag-options">
           <b-form-group label class="mb-1 mr-sm-1 mb-sm-0">
             <b-form-tags
-              v-model="coveredDiseaseProgramsSelected"
+              v-model="selectedCoveredDiseasesPrograms"
               size="lg"
               add-on-change
               no-outer-focus
@@ -68,7 +50,6 @@
         </b-input-group>
 
         <b-form-group label="Plan Types">
-          <!-- could add Indeterminate checkbox use-case  -->
           <b-form-checkbox-group
             name="planTypesContols"
             v-model="selectedPlanType"
@@ -79,24 +60,21 @@
       </b-form>
 
       <b-form inline>
-        <b-form-select
-          v-model="selectedStateFromFilter"
-          :options="stateOptions"
-          v-show="showStateOption"
-        ></b-form-select>
+        <b-form-select v-model="selectedState" :options="stateOptions"></b-form-select>
+
         <b-input-group class="sm">
           <b-form-input
             id="min-price"
-            v-model="minPrice"
+            v-model="selectedMinPrice"
             type="number"
-            placeholder="Min Price: 100"
+            placeholder="Min Price：100"
             debounce="1000"
           ></b-form-input>
         </b-input-group>
         <b-input-group class="sm">
           <b-form-input
             id="max-price"
-            v-model="maxPrice"
+            v-model="selectedMaxPrice"
             type="number"
             placeholder="Max Price: 600"
             debounce="1000"
@@ -109,72 +87,103 @@
 
 <script>
 import axios from "axios";
-import {
-  statesWithInsurancePlans,
-  endpoints,
-  stateMatching,
-  defaultCoveredDiseaseOptions
-} from "../constants.js";
+import { endpoints, defaultCoveredDiseasesPrograms } from "../constants.js";
 
 export default {
   name: "GeneralFilters",
   components: {},
-  props: ["insuranceQualities", "defaultOptions", "selectedStateFromMap"],
+  props: ["insuranceQualities"],
   data() {
     return {
-      showStateOption: true,
-      ageOptions: [{ value: null, text: "All" }].concat(this._.range(18, 31)),
-      availableStateList: [],
-      planTypeOptions: ["EPO", "PPO", "HMO", "POS"],
-      selectedAge: null,
-      selectedState: null,
-      selectedStateFromFilter: null,
-      selectedPlanType: ["EPO", "PPO", "HMO", "POS"],
-      coveredDiseaseProgramsSelected: [],
-      minPrice: null,
-      maxPrice: null,
-      doNotUpdateSelectedStateFromMap: false,
-      doNotUpdateSelectedStateFromFilter: false
+      availableStateList: []
     };
   },
   computed: {
-    coveredDiseaseOptions() {
-      return defaultCoveredDiseaseOptions;
-    },
     filtersGroup() {
-      let min = isNaN(parseInt(this.minPrice)) ? null : parseInt(this.minPrice);
-      let max = isNaN(parseInt(this.maxPrice)) ? null : parseInt(this.maxPrice);
-      let age = this.selectedAge ? this._.toString(this.selectedAge) : null;
-
-      let filtersGroup = {
-        StateCode: this.selectedState,
-        Age: age,
-        PlanType: this.selectedPlanType,
-        CoveredDiseases: this.coveredDiseaseProgramsSelected,
-        IndividualRateRange: { min, max }
-      };
-
-      this.$emit("update:filtersGroup", filtersGroup);
-      console.log(">> Emit filtersGroup from Filters:", filtersGroup);
-      return filtersGroup;
+      return this.$store.state.selectedFilters;
+    },
+    selectedAge: {
+      get() {
+        return this.$store.state.selectedFilters.age;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateSelectedFilter", {
+          newVal,
+          filterType: "age"
+        });
+      }
+    },
+    selectedCoveredDiseasesPrograms: {
+      get() {
+        return this.$store.state.selectedFilters.coveredDiseasesPrograms;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateSelectedFilter", {
+          newVal,
+          filterType: "coveredDiseasesPrograms"
+        });
+      }
+    },
+    selectedPlanType: {
+      get() {
+        return this.$store.state.selectedFilters.planType;
+      },
+      set(newVal) {
+        // TODO: infinite loop
+        console.log("> selectedPlanType Changed");
+        this.$store.dispatch("updateSelectedFilter", {
+          newVal,
+          filterType: "planType"
+        });
+      }
+    },
+    selectedState: {
+      get() {
+        return this.$store.state.selectedFilters.state.code;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateSelectedFilter", {
+          newVal,
+          filterType: "state",
+          type: "code"
+        });
+      }
+    },
+    selectedMinPrice: {
+      get() {
+        return this.$store.state.selectedFilters.price.min;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateSelectedFilter", {
+          newVal,
+          filterType: "price",
+          type: "min"
+        });
+      }
+    },
+    selectedMaxPrice: {
+      get() {
+        return this.$store.state.selectedFilters.price.max;
+      },
+      set(newVal) {
+        this.$store.dispatch("updateSelectedFilter", {
+          newVal,
+          filterType: "price",
+          type: "max"
+        });
+      }
+    },
+    ageOptions() {
+      return this.$store.getters.ageOptions;
     },
     stateOptions() {
-      if (this.availableStateList.length) {
-        let updatedSet = new Set(this.availableStateList);
-        let updated = statesWithInsurancePlans.map(function(state) {
-          return {
-            value: state,
-            text: state,
-            disabled: !updatedSet.has(state)
-          };
-        });
-        return [{ value: null, text: "State" }].concat(
-          this._.sortBy(updated, ["value"])
-        );
-      }
-      return [{ value: null, text: "State" }].concat(
-        statesWithInsurancePlans.sort()
-      );
+      return this.$store.getters.stateOptions;
+    },
+    coveredDiseaseOptions() {
+      return this.$store.getters.coveredDiseasesProgramsOptions;
+    },
+    planTypeOptions() {
+      return this.$store.getters.planTypeOptions;
     }
   },
   mounted() {
@@ -209,7 +218,6 @@ export default {
         return res.data.data.FiltersListOfPlan;
       } catch (e) {
         console.log("err", e);
-        console.log("inside of getAvailableFilterLists()");
         return [];
       }
     },
@@ -248,9 +256,6 @@ export default {
         // let disabledSet = new Set();
         let updatedPlanOptions = this.planTypeOptions.map(plan => {
           let hasValue = new Set(distinctPlanType).has(plan.text || plan);
-          // if (!hasValue) {
-          //   disabledSet.add(plan.text || plan);
-          // }
           return {
             text: plan.text || plan,
             value: hasValue ? plan.text || plan : null,
@@ -274,7 +279,7 @@ export default {
       }
 
       if (sourceFilter != "CoveredDiseases") {
-        defaultCoveredDiseaseOptions.map(function(program) {
+        defaultCoveredDiseasesPrograms.map(function(program) {
           return distinctCoveredDiseasePrograms[program]
             ? program
             : { text: program, disabled: true };
@@ -311,69 +316,6 @@ export default {
     onCoveredDiseaseOptionClick({ option, addTag }) {
       addTag(option);
       this.coveredDiseaseSearch = "";
-    },
-    handleVisibility(showStateOption) {
-      this.showStateOption = showStateOption;
-    },
-    toggleAll(checked) {
-      this.coveredDiseaseProgramsSelected = checked
-        ? this.coveredDiseaseOptions.slice()
-        : [];
-    }
-  },
-  watch: {
-    // coveredDiseaseProgramsSelected(newVal) {
-    //   // Handle changes in individual flavour checkboxes
-    //   if (newVal.length === 0) {
-    //     this.indeterminateCoveredDiseasePrograms = false;
-    //     this.allCoveredDiseaseProgramsSelected = false;
-    //   } else if (newVal.length === this.coveredDiseaseOptions.length) {
-    //     this.indeterminateCoveredDiseasePrograms = false;
-    //     this.allCoveredDiseaseProgramsSelected = true;
-    //   } else {
-    //     this.indeterminateCoveredDiseasePrograms = true;
-    //     this.allCoveredDiseaseProgramsSelected = false;
-    //   }
-    // },
-    selectedPlanType() {
-      console.log("> selectedPlanType Changed");
-      this.extractDistinctFiltersList("PlanType");
-      // Did not update min and max price
-    },
-    coveredDiseaseProgramsSelected() {
-      console.log("> selectedCoveredDiseasePrograms Changed");
-      this.extractDistinctFiltersList("CoveredDiseases");
-    },
-    selectedAge() {
-      console.log("> selectedAge Changed");
-      this.extractDistinctFiltersList("Age");
-    },
-    selectedState() {
-      console.log("> selectedState Changed");
-      this.extractDistinctFiltersList("StateCode");
-    },
-    selectedStateFromMap(newVal, oldVal) {
-      if (this.doNotUpdateSelectedStateFromFilter) {
-        this.doNotUpdateSelectedStateFromFilter = false;
-        return;
-      }
-      if (newVal != oldVal) {
-        this.doNotUpdateSelectedStateFromMap = true;
-        this.selectedStateFromFilter = stateMatching[newVal.State];
-        this.selectedState = stateMatching[newVal.State];
-      }
-    },
-    selectedStateFromFilter(newVal, oldVal) {
-      if (this.doNotUpdateSelectedStateFromMap) {
-        this.doNotUpdateSelectedStateFromMap = false;
-        return;
-      }
-
-      if (newVal != oldVal) {
-        // this.$emit("update:selectedStateFromMap", stateCodeToName[newVal]);
-        this.doNotUpdateSelectedStateFromFilter = true;
-        this.selectedState = newVal;
-      }
     }
   }
 };
@@ -421,21 +363,4 @@ export default {
   border-radius: 0.25rem;
   background-color: white;
 }
-/*
-.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
-  border-color: var(--optional-blue) !important;
-  background-color: var(--optional-blue) !important;
-}
-
-.custom-checkbox
-  .custom-control-input:checked:focus
-  ~ .custom-control-label::before {
-  box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(0, 255, 0, 0.25);
-}
-.custom-checkbox .custom-control-input:focus ~ .custom-control-label::before {
-  box-shadow: 0 0 0 1px #fff, 0 0 0 0.2rem rgba(0, 0, 0, 0.25);
-}
-.custom-checkbox .custom-control-input:active ~ .custom-control-label::before {
-  background-color: #c8ffc8;
-} */
 </style>

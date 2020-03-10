@@ -37,15 +37,13 @@
     </transition>
 
     <div v-if="showErrorMessage">Error, please refresh the page...</div>
-
     <div id="tile-map"></div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
 import Highcharts from "highcharts";
-import { endpoints, stateGeoLocations, stateCodeToName } from "../constants.js";
+import { stateGeoLocations, stateNameToCode } from "../constants.js";
 import StatsCard from "./StatsCard.vue";
 
 // Load module after Highcharts is loaded
@@ -56,10 +54,9 @@ require("highcharts/modules/tilemap")(Highcharts);
 export default {
   name: "StateBased",
   components: { StatsCard },
-  props: ["insuranceQualities", "filtersGroup", "selectedStateFromMap"],
+  props: ["insuranceQualities"],
   data() {
     return {
-      AvgStatePremium: [{}],
       tileMapChart: null,
       showFixedCollapsedStats: false,
       showErrorMessage: false,
@@ -72,6 +69,15 @@ export default {
     };
   },
   computed: {
+    selectedStateFilterName() {
+      return this.$store.state.selectedFilters.state.name;
+    },
+    averageStatePremium() {
+      return this.$store.state.averageStatePremium;
+    },
+    averageStatePremiumPriceRange() {
+      return this.$store.state.averageStatePremiumPriceRange;
+    },
     stateWithHighestCompScore() {
       return this._.maxBy(this.insuranceQualities, "WalletHubCompositeScore");
     },
@@ -82,34 +88,6 @@ export default {
   methods: {
     handleStatsVisibility(isVisible) {
       this.showFixedCollapsedStats = !isVisible;
-    },
-    async getAvgMonthlyPremiumByParams() {
-      try {
-        const res = await axios.post(endpoints.insurancePlans, {
-          crossDomain: true,
-          query: `query getAvgStatePremiumByParams ($Age: String, $PlanType: [String], $CoveredDiseases: [String], $IndividualRateRange: PriceRangeType) {
-          AvgStatePremiumByParams ( Age: $Age, PlanType: $PlanType, CoveredDiseases: $CoveredDiseases, IndividualRateRange: $IndividualRateRange) {
-            StateCode
-            AvgMonthlyPremium
-          }}`,
-          variables: {
-            Age: this.filtersGroup.Age,
-            PlanType: this.filtersGroup.PlanType,
-            CoveredDiseases: this.filtersGroup.CoveredDiseases,
-            IndividualRateRange: this.filtersGroup.IndividualRateRange
-          }
-        });
-
-        this.AvgStatePremium = res.data.data.AvgStatePremiumByParams;
-        console.log("> getAvgMonthlyPremiumByParams: Has data returned");
-        return;
-      } catch (e) {
-        console.log("err", e);
-        // Should work on retry later
-        this.$store.commit("stateBasedViewIsLoading", false);
-        this.showErrorMessage = true;
-        return;
-      }
     },
     generateTileMap(seriesData) {
       let chartOptions = {
@@ -188,67 +166,49 @@ export default {
       return;
     }
   },
+  mounted() {
+    this.$store.dispatch("updateStateMap");
+  },
   watch: {
-    filtersGroup(newVal, oldVal) {
-      this.$store.commit("stateBasedViewIsLoading", true);
-      this.getAvgMonthlyPremiumByParams();
-
-      if (newVal.StateCode != oldVal.StateCode) {
-        // State changed by the filter
-        this.highlightedState = this._.find(this.insuranceQualities, o => {
-          return o.State == stateCodeToName[newVal.StateCode];
-        });
-      }
+    selectedStateFilterName(newVal) {
+      this.highlightedState = this._.find(this.insuranceQualities, o => {
+        return o.State == newVal;
+      });
     },
-    AvgStatePremium() {
-      let statePriceHash = {};
-
-      // Converting retrived data response: {${StateCode}: AvgMonthlyPremium}
-      if (!this._.isEmpty(this.AvgStatePremium[0])) {
-        statePriceHash = this._.reduce(
-          this.AvgStatePremium,
-          function(res, row) {
-            res[row.StateCode] = row.AvgMonthlyPremium;
-            return res;
-          },
-          {}
-        );
-      }
-
+    averageStatePremium() {
       let tileMapSeriesData = [
         {
           name: "AverageMonthlyRatePerState",
-          min: this._.minBy(this.AvgStatePremium, "AvgMonthlyPremium"),
-          max: this._.maxBy(this.AvgStatePremium, "AvgMonthlyPremium"),
+          min: this.averageStatePremiumPriceRange.min,
+          max: this.averageStatePremiumPriceRange.max,
           cursor: "pointer",
           events: {
             click: event => {
               //TODO: Work on the greying out effect
-              this.highlightedState = this._.find(
-                this.insuranceQualities,
-                o => {
-                  return o.State == event.point.name;
-                }
-              );
-
-              if (this.highlightedState) {
-                this.highlightedState.AverageMonthlyPrice = event.point.value;
-                this.$emit(
-                  "update:selectedStateFromMap",
-                  this.highlightedState
+              if (this.averageStatePremium[stateNameToCode[event.point.name]]) {
+                this.highlightedState = this._.find(
+                  this.insuranceQualities,
+                  o => {
+                    return o.State == event.point.name;
+                  }
                 );
-                // TODO: Add logic for updating state filters
+                this.highlightedState.AverageMonthlyPrice = event.point.value;
+                this.$store.dispatch("updateSelectedFilter", {
+                  newVal: this.highlightedState.State,
+                  filterType: "state",
+                  type: "name"
+                });
               } else {
                 console.log(
-                  "could not find highlights state: ",
+                  "No data for the clicked state: ",
                   event.point.name
                 );
               }
             }
           },
           data: stateGeoLocations.map(point => {
-            if (statePriceHash[point.stateCode]) {
-              point.value = statePriceHash[point.stateCode];
+            if (this.averageStatePremium[point.stateCode]) {
+              point.value = this.averageStatePremium[point.stateCode];
               point.color = null;
             } else {
               point.value = null;
@@ -261,7 +221,6 @@ export default {
           })
         }
       ];
-      console.log("tileMapSeriesData: ", tileMapSeriesData);
       this.generateTileMap(tileMapSeriesData);
     }
   }

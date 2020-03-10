@@ -4,23 +4,21 @@
     <Loading />
     <GeneralFilters
       v-bind:insuranceQualities="insuranceQualities"
-      v-bind:filtersGroup.sync="filtersGroup"
       v-bind:selectedStateFromMap="selectedStateFromMap"
       defaultOptions="defaultFilterOptions"
       ref="GeneralFilters"
       :key="filterComponentKey"
     />
     <b-button variant="outline-primary" v-on:click="resetFilters" style>Reset All</b-button>
-    <div class="debug-text" style>(debug): {{ filtersGroup }}</div>
+
     <Navigation />
 
     <StateBased
       v-bind:insuranceQualities="insuranceQualities"
       v-bind:selectedStateFromMap.sync="selectedStateFromMap"
-      v-bind:filtersGroup="filtersGroup"
     />
 
-    <PlanBased v-bind:filtersGroup="filtersGroup" />
+    <!-- <PlanBased v-bind:filtersGroup="filtersGroup" /> -->
   </div>
 </template>
 
@@ -29,7 +27,7 @@ import { endpoints } from "./constants.js";
 import axios from "axios";
 import Navigation from "./components/Navigation.vue";
 import StateBased from "./components/StateBased.vue";
-import PlanBased from "./components/PlanBased.vue";
+// import PlanBased from "./components/PlanBased.vue";
 import Loading from "./components/Loading.vue";
 import GeneralFilters from "./components/GeneralFilters.vue";
 
@@ -39,12 +37,11 @@ export default {
     Navigation,
     StateBased,
     GeneralFilters,
-    PlanBased,
+    // PlanBased,
     Loading
   },
   data() {
     return {
-      filtersGroup: {},
       insuranceQualities: [{}],
       filterComponentKey: 0,
       selectedStateFromMap: null

@@ -10,7 +10,9 @@ export const endpoints = {
 //   insurancePlans: "http://localhost:3000/graphql/insurancePlans"
 // }
 
-export const defaultCoveredDiseaseOptions = [
+export const defaultPlanTypes = ["EPO", "HMO", "POS", "PPO"];
+
+export const defaultCoveredDiseasesPrograms = [
   "Pregnancy",
   "Depression",
   "Asthma",
@@ -22,7 +24,7 @@ export const defaultCoveredDiseaseOptions = [
   "Diabetes"
 ];
 
-export const stateMatching = {
+export const stateNameToCode = {
   "Alabama": "AL",
   "Alaska": "AK",
   "Arizona": "AZ",
@@ -130,8 +132,7 @@ export const stateCodeToName = {
   "WY": "Wyoming"
 };
 
-export const statesWithInsurancePlans = ["FL", "AL", "KS", "NC", "MI", "OH", "LA", "NJ", "NH", "OR", "MO", "GA", "NM", "MT", "MS", "TN", "DE", "ME", "AZ", "HI", "IA", "IL", "TX", "UT", "VA", "WI", "IN", "AR", "OK", "ND", "KY", "PA", "AK", "NE", "SC", "SD", "WV"];
-
+export const statesWithInsurancePlans = ["FL", "AL", "KS", "NC", "MI", "OH", "LA", "NJ", "NH", "OR", "MO", "GA", "NM", "MT", "MS", "TN", "DE", "ME", "AZ", "HI", "IA", "IL", "TX", "UT", "VA", "WI", "IN", "AR", "OK", "ND", "KY", "PA", "AK", "NE", "SC", "SD", "WV"].sort();
 
 export const statesWithHealthQualityData = ["AK", "AL", "AR", "AZ", "DE", "FL", "GA", "HI", "IA", "IL", "IN", "KS", "KY", "LA", "ME", "MI", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "OH", "OK", "OR", "PA", "SC", "SD", "TN", "TX", "UT", "VA", "WI", "WV"];
 
