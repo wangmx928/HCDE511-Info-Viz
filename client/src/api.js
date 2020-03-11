@@ -69,10 +69,6 @@ export const getCheapestPlans = async params => {
       IndividualRateRange: params.price
     }
   });
-  console.log(
-    ">> available CheapestPlansByParams Rows",
-    res.data.data.CheapestPlansByParams.length
-  );
   return res.data.data.CheapestPlansByParams;
 };
 

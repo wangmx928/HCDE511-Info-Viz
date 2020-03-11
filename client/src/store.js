@@ -376,7 +376,6 @@ export const appStore = {
       );
     },
     hasAvgStatePremiumData(state, data) {
-      console.log(">> avgStatepremium Rows", data.length);
       if (data) {
         state.averageStatePremium = _.reduce(
           data,
@@ -395,7 +394,6 @@ export const appStore = {
       }
     },
     hasCheapestPlanData(state, data) {
-      console.log(">> hasCheapestPlanData Rows", data.length);
       state.cheapestPlans = data;
     },
     stateBasedViewIsLoading(state, isLoading) {
