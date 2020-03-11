@@ -30,7 +30,7 @@ export const getAvgMonthlyPremiumByParams = async params => {
     variables: {
       Age: params.age,
       PlanType: params.planType,
-      CoveredDiseases: params.coveredDiseasesProgramsPrograms,
+      CoveredDiseases: params.coveredDiseasesPrograms,
       IndividualRateRange: params.price
     }
   });
