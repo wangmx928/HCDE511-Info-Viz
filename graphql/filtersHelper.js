@@ -7,7 +7,7 @@ module.exports = {
     if (Age) {
       conditionalStatements.push(`(Age = "${Age}")`)
     }
-    if (PlanType && PlanType.length > 0) {
+    if (PlanType) {
       let typeRange = PlanType.map((type) => {
         return `"${type}"`;
       }).join(",");

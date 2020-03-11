@@ -26,7 +26,7 @@ const defaultFiltersOptions = {
 };
 
 export const appStore = {
-  strict: true,
+  // strict: true,
   state: {
     isLoading: {
       filter: true,
@@ -179,10 +179,8 @@ export const appStore = {
           }
         } else if (filterType == "state") {
           if (state.selectedFilters.state[type] != newVal) {
-            if (!newVal) {
+            if (!newVal || newVal == '-') {
               commit("updateSelectedStateFilter", { code: null, name: null });
-              state.selectedFilters.state.code = null;
-              state.selectedFilters.state.name = null;
             } else {
               if (type == "code") {
                 if (newVal) {
@@ -219,41 +217,35 @@ export const appStore = {
           dispatch("updatePageAccordingToFiltersResult", filterType);
         }
       } catch (e) {
-        console.log("errr", e);
         // reset the value
         state.selectedFilters[filterType] = oldVal;
         commit("stateBasedViewIsLoading", false);
-        // TODO: show stateView error message or retry
+        commit("hasError", 'updateContentBySelectedFilter');
       }
     },
     async getFiltersOptionsWithDisabledMark({ commit, state }, filterType) {
-      console.log(">>> inside of getFiltersOptionsWithDisabledMark");
       commit("filterIsLoading", true);
 
       let funcs = {
-        age: async function(selectedFilters) {
-          console.log("commit('updateAvailableAgeFilterOptions'");
+        age: async function (selectedFilters) {
           commit(
             "updateAvailableAgeFilterOptions",
             await getAgeFilterOptions(selectedFilters)
           );
         },
-        state: async function(selectedFilters) {
-          console.log("commit('updateAvailableStateFilterOptions'");
+        state: async function (selectedFilters) {
           commit(
             "updateAvailableStateFilterOptions",
             await getStateFilterOptions(selectedFilters)
           );
         },
-        planType: async function(selectedFilters) {
-          console.log("commit('updateAvailablePlanTypeFilterOptions'");
+        planType: async function (selectedFilters) {
           commit(
             "updateAvailablePlanTypeFilterOptions",
             await getPlanTypeFilterOptions(selectedFilters)
           );
         },
-        coveredDiseasesPrograms: async function(selectedFilters) {
-          console.log("commit('updateAvailableCoveredDiseasesFilterOptions'");
+        coveredDiseasesPrograms: async function (selectedFilters) {
           commit(
             "updateAvailableCoveredDiseasesFilterOptions",
             await getCoveredDiseasesFilterOptions(selectedFilters)
@@ -261,13 +253,14 @@ export const appStore = {
         }
       };
 
-      ["age", "state", "planType", "coveredDiseasesPrograms"].forEach(function(
+      ["age", "state", 'planType', "coveredDiseasesPrograms"].forEach(function (
         name
       ) {
         if (name != filterType) {
           funcs[name](state.selectedFilters);
         }
       });
+      // funcs['planType'](state.selectedFilters);
 
       commit("filterIsLoading", false);
     },
@@ -291,7 +284,6 @@ export const appStore = {
       dispatch("updateCheapestPlan");
     },
     async updateStateMapWithType({ commit, state }, type) {
-      console.log("> updateStateMapWithType");
       commit("stateBasedViewIsLoading", true);
 
       if (type == "averageStatePremium") {
@@ -304,17 +296,19 @@ export const appStore = {
       commit("stateBasedViewIsLoading", false);
     },
     async getAllHealthInsuranceQualityData({ commit }) {
-      console.log("> get quality data from store");
       commit("updateHealthQualityData", await getAllHealthInsuranceQuality());
     }
   },
   mutations: {
+    hasError(state, data) {
+      state.hasError = true;
+      state.errorOrigin = data;
+    },
     updateSelectedStateFilter(state, data) {
       state.selectedFilters.state.name = data.name;
       state.selectedFilters.state.code = data.code;
     },
     updateHealthQualityData(state, data) {
-      console.log("> updateHealthQualityData");
       state.insuranceQualities = data;
     },
     setSelectedFilters(state, { newVal, type }) {
@@ -330,7 +324,7 @@ export const appStore = {
     },
     updateAvailableAgeFilterOptions(state, data) {
       let ageSet = new Set(_.map(data, row => row.Age));
-      let result = defaultFiltersOptions.age.map(function(age) {
+      let result = defaultFiltersOptions.age.map(function (age) {
         if (age.value == null) {
           return age;
         }
@@ -341,7 +335,7 @@ export const appStore = {
     updateAvailableStateFilterOptions(state, data) {
       let distinctStateCode = new Set(_.map(data, row => row.StateCode));
 
-      let result = defaultFiltersOptions.state.map(function(state) {
+      let result = defaultFiltersOptions.state.map(function (state) {
         if (state.value == null) {
           return state;
         }
@@ -357,20 +351,27 @@ export const appStore = {
     updateAvailablePlanTypeFilterOptions(state, data) {
       let distinctPlanType = new Set(_.map(data, row => row.PlanType));
       let hasValue = null;
+      let setAllToDisabled = distinctPlanType.size <= 1;
+      let numOfSelected = 0;
       let updatedPlanOptions = defaultFiltersOptions.planType.map(plan => {
         hasValue = distinctPlanType.has(plan);
+        if (hasValue && !setAllToDisabled) { numOfSelected += 1 }
         return {
           text: plan,
           value: hasValue ? plan : null,
-          disabled: !hasValue
+          disabled: !hasValue || setAllToDisabled
         };
       });
 
-      state.availableFilterOptions.planType = updatedPlanOptions;
+      if (numOfSelected == 0) {
+        state.availableFilterOptions.planType = defaultFiltersOptions.planType;
+      } else {
+        state.availableFilterOptions.planType = updatedPlanOptions;
+      }
     },
     updateAvailableCoveredDiseasesFilterOptions(state, data) {
       let temp = new Set();
-      data.map(function(row) {
+      data.map(function (row) {
         temp = new Set(
           Array.from(temp).concat(
             row.DiseaseManagementProgramsOffered.split(",").map(item =>
@@ -379,10 +380,8 @@ export const appStore = {
           )
         );
       });
-      console.log("temp", temp);
       state.availableFilterOptions.coveredDiseasesPrograms = defaultFiltersOptions.coveredDiseasesPrograms.map(
         item => {
-          console.log("item", item);
           return temp.has(item) ? item : { text: item, disabled: true };
         }
       );
@@ -391,7 +390,7 @@ export const appStore = {
       if (data) {
         state.averageStatePremium = _.reduce(
           data,
-          function(res, row) {
+          function (res, row) {
             res[row.StateCode] = row.AvgMonthlyPremium;
             return res;
           },

@@ -80,140 +80,138 @@ export default {
   computed: mapState(["cheapestPlans"]),
   methods: {
     getSpiderChartOptions(cheapestPlans) {
-      console.log(">getSpiderChartOptions");
-      let seriesData = null;
-      if (cheapestPlans && cheapestPlans.length) {
-        let attributesHash = this._.reduce(
-          cheapestPlans,
-          (result, plan) => {
-            result["IndividualRate"].push(plan.IndividualRate);
-            result["CoveredDiseasesCount"].push(plan.CoveredDiseasesCount);
-            result["SBCHavingaBabyDeductible"].push(
-              plan.SBCHavingaBabyDeductible
-            );
-            result["SBCHavingaBabyCopayment"].push(
-              plan.SBCHavingaBabyCopayment
-            );
-            result["SBCHavingaBabyCoinsurance"].push(
-              plan.SBCHavingaBabyCoinsurance
-            );
-            result["SBCHavingaBabyLimit"].push(plan.SBCHavingaBabyLimit);
-            result["SBCHavingDiabetesDeductible"].push(
-              plan.SBCHavingDiabetesDeductible
-            );
-            result["SBCHavingDiabetesCopayment"].push(
-              plan.SBCHavingDiabetesCopayment
-            );
-            result["SBCHavingDiabetesCoinsurance"].push(
-              plan.SBCHavingDiabetesCoinsurance
-            );
-            result["SBCHavingDiabetesLimit"].push(plan.SBCHavingDiabetesLimit);
-            result["SBCHavingSimplefractureDeductible"].push(
-              plan.SBCHavingSimplefractureDeductible
-            );
-            result["SBCHavingSimplefractureCopayment"].push(
-              plan.SBCHavingSimplefractureCopayment
-            );
-            result["SBCHavingSimplefractureCoinsurance"].push(
-              plan.SBCHavingSimplefractureCoinsurance
-            );
-            return result;
-          },
-          {
-            IndividualRate: [],
-            CoveredDiseasesCount: [],
-            SBCHavingaBabyDeductible: [],
-            SBCHavingaBabyCopayment: [],
-            SBCHavingaBabyCoinsurance: [],
-            SBCHavingaBabyLimit: [],
-            SBCHavingDiabetesDeductible: [],
-            SBCHavingDiabetesCopayment: [],
-            SBCHavingDiabetesCoinsurance: [],
-            SBCHavingDiabetesLimit: [],
-            SBCHavingSimplefractureDeductible: [],
-            SBCHavingSimplefractureCopayment: [],
-            SBCHavingSimplefractureCoinsurance: []
-          }
-        );
-
-        let indexOf = this._.indexOf;
-
-        let clickFunctionWrapper = (function(that) {
-          return function(event) {
-            //TODO: Work on the greying out effect
-            console.log(
-              ">> spider graph, clicked category:",
-              event.point.category
-            );
-            that.selectedAttribute = event.point.category;
-          };
-        })(this);
-
-        let colors = ["#EB8537", "#72CFCF", "#4B2472"];
-
-        seriesData = cheapestPlans.map(function(plan, index) {
-          return {
-            name: plan.PlanMarketingName,
-            events: {
-              click: clickFunctionWrapper
-            },
-            color: colors[index],
-            data: [
-              indexOf(attributesHash["IndividualRate"], plan.IndividualRate) +
-                1,
-              indexOf(
-                attributesHash["CoveredDiseasesCount"],
-                plan.CoveredDiseasesCount
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingaBabyDeductible"],
-                plan.SBCHavingaBabyDeductible
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingaBabyCopayment"],
-                plan.SBCHavingaBabyCopayment
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingaBabyCoinsurance"],
-                plan.SBCHavingaBabyCoinsurance
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingaBabyLimit"],
-                plan.SBCHavingaBabyLimit
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingDiabetesDeductible"],
-                plan.SBCHavingDiabetesDeductible
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingDiabetesCopayment"],
-                plan.SBCHavingDiabetesCopayment
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingDiabetesCoinsurance"],
-                plan.SBCHavingDiabetesCoinsurance
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingDiabetesLimit"],
-                plan.SBCHavingDiabetesLimit
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingSimplefractureDeductible"],
-                plan.SBCHavingSimplefractureDeductible
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingSimplefractureCopayment"],
-                plan.SBCHavingSimplefractureCopayment
-              ) + 1,
-              indexOf(
-                attributesHash["SBCHavingSimplefractureCoinsurance"],
-                plan.SBCHavingSimplefractureCoinsurance
-              ) + 1
-            ],
-            pointPlacement: "on"
-          };
-        });
+      if (!cheapestPlans || cheapestPlans.length == 0) {
+        cheapestPlans = [
+          { PlanMarketingName: "No Available Plan" },
+          { PlanMarketingName: "No Available Plan" },
+          { PlanMarketingName: "No Available Plan" }
+        ];
       }
+      let seriesData = [];
+      let attributesHash = this._.reduce(
+        cheapestPlans,
+        (result, plan) => {
+          result["IndividualRate"].push(plan.IndividualRate);
+          result["CoveredDiseasesCount"].push(plan.CoveredDiseasesCount);
+          result["SBCHavingaBabyDeductible"].push(
+            plan.SBCHavingaBabyDeductible
+          );
+          result["SBCHavingaBabyCopayment"].push(plan.SBCHavingaBabyCopayment);
+          result["SBCHavingaBabyCoinsurance"].push(
+            plan.SBCHavingaBabyCoinsurance
+          );
+          result["SBCHavingaBabyLimit"].push(plan.SBCHavingaBabyLimit);
+          result["SBCHavingDiabetesDeductible"].push(
+            plan.SBCHavingDiabetesDeductible
+          );
+          result["SBCHavingDiabetesCopayment"].push(
+            plan.SBCHavingDiabetesCopayment
+          );
+          result["SBCHavingDiabetesCoinsurance"].push(
+            plan.SBCHavingDiabetesCoinsurance
+          );
+          result["SBCHavingDiabetesLimit"].push(plan.SBCHavingDiabetesLimit);
+          result["SBCHavingSimplefractureDeductible"].push(
+            plan.SBCHavingSimplefractureDeductible
+          );
+          result["SBCHavingSimplefractureCopayment"].push(
+            plan.SBCHavingSimplefractureCopayment
+          );
+          result["SBCHavingSimplefractureCoinsurance"].push(
+            plan.SBCHavingSimplefractureCoinsurance
+          );
+          return result;
+        },
+        {
+          IndividualRate: [],
+          CoveredDiseasesCount: [],
+          SBCHavingaBabyDeductible: [],
+          SBCHavingaBabyCopayment: [],
+          SBCHavingaBabyCoinsurance: [],
+          SBCHavingaBabyLimit: [],
+          SBCHavingDiabetesDeductible: [],
+          SBCHavingDiabetesCopayment: [],
+          SBCHavingDiabetesCoinsurance: [],
+          SBCHavingDiabetesLimit: [],
+          SBCHavingSimplefractureDeductible: [],
+          SBCHavingSimplefractureCopayment: [],
+          SBCHavingSimplefractureCoinsurance: []
+        }
+      );
+
+      let indexOf = this._.indexOf;
+
+      let clickFunctionWrapper = (function(that) {
+        return function(event) {
+          that.selectedAttribute = event.point.category;
+        };
+      })(this);
+
+      let colors = ["#EB8537", "#72CFCF", "#4B2472"];
+
+      seriesData = cheapestPlans.map(function(plan, index) {
+        return {
+          name: plan.PlanMarketingName,
+          events: {
+            click: clickFunctionWrapper
+          },
+          color: colors[index],
+          data: [
+            indexOf(attributesHash["IndividualRate"], plan.IndividualRate) + 1,
+            indexOf(
+              attributesHash["CoveredDiseasesCount"],
+              plan.CoveredDiseasesCount
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingaBabyDeductible"],
+              plan.SBCHavingaBabyDeductible
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingaBabyCopayment"],
+              plan.SBCHavingaBabyCopayment
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingaBabyCoinsurance"],
+              plan.SBCHavingaBabyCoinsurance
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingaBabyLimit"],
+              plan.SBCHavingaBabyLimit
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingDiabetesDeductible"],
+              plan.SBCHavingDiabetesDeductible
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingDiabetesCopayment"],
+              plan.SBCHavingDiabetesCopayment
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingDiabetesCoinsurance"],
+              plan.SBCHavingDiabetesCoinsurance
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingDiabetesLimit"],
+              plan.SBCHavingDiabetesLimit
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingSimplefractureDeductible"],
+              plan.SBCHavingSimplefractureDeductible
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingSimplefractureCopayment"],
+              plan.SBCHavingSimplefractureCopayment
+            ) + 1,
+            indexOf(
+              attributesHash["SBCHavingSimplefractureCoinsurance"],
+              plan.SBCHavingSimplefractureCoinsurance
+            ) + 1
+          ],
+          pointPlacement: "on"
+        };
+      });
+
+      seriesData = this._.reverse(seriesData);
 
       let spirderGraphOption = {
         chart: {
@@ -275,7 +273,9 @@ export default {
         },
         legend: {
           align: "center",
-          verticalAlign: "bottom"
+          verticalAlign: "bottom",
+          layout: "vertical",
+          reversed: true
         },
         series: seriesData,
         responsive: {
@@ -291,9 +291,10 @@ export default {
       state => state.cheapestPlans,
       newVal => {
         this.$store.commit("spiderChartIsLoading", true);
-
         if (this.spiderChart) {
-          this.spiderChart.update(this.getSpiderChartOptions(newVal));
+          this.spiderChart.update(this.getSpiderChartOptions(newVal), {
+            oneToOne: true
+          });
         } else {
           this.spiderChart = Highcharts.chart(
             "planBasedComparison",

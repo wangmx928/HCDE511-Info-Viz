@@ -35,6 +35,7 @@
       </div>
       <div v-if="showErrorMessage">Error, please refresh the page...</div>
       <div id="tile-map"></div>
+      <div id="comp-score-map"></div>
     </div>
   </div>
 </template>
@@ -45,9 +46,12 @@ import { stateGeoLocations, stateNameToCode } from "../constants.js";
 import StatsCard from "./StatsCard.vue";
 
 // Load module after Highcharts is loaded
+require("highcharts/highcharts-more")(Highcharts);
 require("highcharts/modules/exporting")(Highcharts);
 require("highcharts/modules/heatmap")(Highcharts);
 require("highcharts/modules/tilemap")(Highcharts);
+require("highcharts/modules/dumbbell")(Highcharts);
+require("highcharts/modules/lollipop")(Highcharts);
 
 export default {
   name: "StateBased",
@@ -63,7 +67,8 @@ export default {
         USNewsRank: "-",
         WalletHubCompositeScore: "-",
         AverageMonthlyPrice: "-"
-      }
+      },
+      compScoreMap: null
     };
   },
   computed: {
@@ -89,58 +94,56 @@ export default {
     },
     getSeriesData(rawData) {
       let avgPriceRange = this.$store.state.avgPriceRange;
-      console.log(">> rawData", rawData);
-      console.log(">> avgPriceRange", avgPriceRange);
       return [
         {
           name: "AverageMonthlyRatePerState",
           min: avgPriceRange.min,
           max: avgPriceRange.max,
           cursor: "pointer",
+          allowPointSelect: true,
+          states: {
+            select: {
+              borderColor: "#2b5c8a",
+              borderWidth: "3"
+            }
+          },
           events: {
             click: event => {
-              //TODO: Work on the greying out effect
-
               if (rawData[stateNameToCode[event.point.name]]) {
-                this.highlightedState = this._.find(
-                  this.insuranceQualities,
-                  o => {
-                    return o.State == event.point.name;
-                  }
-                );
+                this.updateHighlightedState(event.point.name);
                 this.highlightedState.AverageMonthlyPrice = event.point.value;
-                this.$store.dispatch("updateContentBySelectedFilter", {
-                  newVal: this.highlightedState.State,
-                  filterType: "state",
-                  type: "name"
-                });
               } else {
                 console.log(
                   "No data for the clicked state: ",
                   event.point.name
                 );
+                // reset selectedState
+                this.updateHighlightedState(null);
               }
+              this.$store.dispatch("updateContentBySelectedFilter", {
+                newVal: this.highlightedState.State,
+                filterType: "state",
+                type: "name"
+              });
             }
           },
           data: stateGeoLocations.map(point => {
+            point.borderWidth = 0;
             if (rawData[point.stateCode]) {
-              if (point.value == "AK") {
-                console.log("???rawData", point);
-              }
               point.value = rawData[point.stateCode];
               point.color = null;
+              point.dataLabels = {
+                color: "#000000"
+              };
             } else {
-              if (point.value == "AK") {
-                console.log("wwwwwww");
-                console.log(point);
-              }
-              console.log(point);
               point.value = null;
               point.color = "#4f5d6750";
               point.dataLabels = {
-                color: "#FFFFFF",
-                text: null
+                color: "#FFFFFF"
               };
+            }
+            if (point.stateCode == this.highlightedState.Code) {
+              point.selected = true;
             }
             return point;
           })
@@ -171,8 +174,8 @@ export default {
         colorAxis: {
           min: seriesData.min,
           max: seriesData.max,
-          minColor: "#C7D8E8",
-          maxColor: "#005BB0"
+          minColor: "#fafbfb",
+          maxColor: "#3078b5"
         },
         tooltip: {
           formatter: function() {
@@ -239,12 +242,57 @@ export default {
       // Last Step on this page
       this.$store.commit("stateBasedViewIsLoading", false);
       return;
+    },
+    generateCompScoreMap() {
+      let data = this.insuranceQualities.map(row => {
+        return {
+          name: row.Code,
+          low: row.WalletHubCompositeScore
+        };
+      });
+      this.compScoreMap = Highcharts.chart("comp-score-map", {
+        chart: {
+          type: "lollipop"
+        },
+        dataSorting: {
+          enabled: true
+        },
+        plotOptions: {
+          series: {
+            allowPointSelect: true
+          }
+        },
+        series: [{ data }]
+      });
+    },
+    updateHighlightedState(newVal) {
+      if (!newVal) {
+        this.highlightedState = {
+          State: "-",
+          USNewsRank: "-",
+          WalletHubCompositeScore: "-",
+          AverageMonthlyPrice: "-"
+        };
+      } else {
+        let temp = this._.find(this.insuranceQualities, o => {
+          return o.State == newVal;
+        });
+        if (temp == undefined || this._.isEmpty(temp)) {
+          return;
+        }
+        this.highlightedState = temp;
+      }
     }
   },
   mounted() {
     this.$store.dispatch("updateStateMapWithType", "averageStatePremium");
   },
   watch: {
+    insuranceQualities(newVal) {
+      if (newVal && newVal.length) {
+        // this.generateCompScoreMap();
+      }
+    },
     averageStatePremium(newVal) {
       if (this.$store.state.currentStateMapType != "averageStatePremium") {
         return;
@@ -255,28 +303,15 @@ export default {
       let chartOptions = this.getTileMapOptions(seriesData);
 
       if (!this.tileMapChart) {
-        console.log("> chartOptions", chartOptions);
         this.tileMapChart = Highcharts.chart("tile-map", chartOptions);
       } else {
-        console.log("> has tilemap", chartOptions);
         this.tileMapChart.update(chartOptions);
       }
 
       this.$store.commit("stateBasedViewIsLoading", false);
     },
     selectedStateFilterName(newVal) {
-      if (!newVal) {
-        this.highlightedState = {
-          State: "-",
-          USNewsRank: "-",
-          WalletHubCompositeScore: "-",
-          AverageMonthlyPrice: "-"
-        };
-      } else {
-        this.highlightedState = this._.find(this.insuranceQualities, o => {
-          return o.State == newVal;
-        });
-      }
+      this.updateHighlightedState(newVal);
     }
   }
 };

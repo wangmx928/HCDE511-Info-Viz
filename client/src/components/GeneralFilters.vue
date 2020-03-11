@@ -69,7 +69,6 @@
 
           <div class="filter-labels">Plan Type</div>
           <b-form-checkbox-group
-            name="planTypesContols"
             v-model="selectedPlanType"
             :options="planTypeOptions"
             switches
@@ -163,12 +162,15 @@ export default {
         return this.$store.state.selectedFilters.planType;
       },
       set(newVal) {
-        // TODO: infinite loop
-        console.log("> selectedPlanType Changed");
-        this.$store.dispatch("updateContentBySelectedFilter", {
-          newVal,
-          filterType: "planType"
-        });
+        if (
+          JSON.stringify(newVal) !=
+          JSON.stringify(this.$store.state.selectedFilters.planType)
+        ) {
+          this.$store.dispatch("updateContentBySelectedFilter", {
+            newVal,
+            filterType: "planType"
+          });
+        }
       }
     },
     selectedState: {
@@ -222,7 +224,6 @@ export default {
       return this.$store.getters.stateOptions;
     },
     coveredDiseaseOptions() {
-      console.log(this.$store.getters.coveredDiseasesProgramsOptions);
       return this.$store.getters.coveredDiseasesProgramsOptions;
     },
     planTypeOptions() {

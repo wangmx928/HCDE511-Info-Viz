@@ -8,6 +8,7 @@ export const getAllHealthInsuranceQuality = async () => {
       query: `{
                 InsuranceQuality {
                   State
+                  Code
                   USNewsRank
                   WalletHubCompositeScore
                 }
@@ -161,12 +162,3 @@ export const getCoveredDiseasesFilterOptions = async params => {
     return [];
   }
 };
-
-//   // let distinctMetalLevel = {
-//   //   Bronze: this._.find(result, ["MetalLevel", "Bronze"]),
-//   //   ExpandedBronze: this._.find(result, ["MetalLevel", "Expanded Bronze"])
-//   // };
-
-//   // if (filterType != "MetalLevel") {
-//   //   this.metalLevelOptions = distinctMetalLevel;
-//   // }

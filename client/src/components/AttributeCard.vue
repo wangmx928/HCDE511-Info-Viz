@@ -107,6 +107,7 @@ export default {
   margin: auto;
   margin-bottom: 20px;
   text-align: center;
+  justify-content: center;
   background-color: #fff;
   border: none;
   display: inline-flex;
