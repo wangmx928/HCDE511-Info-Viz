@@ -72,7 +72,7 @@ const queries = {
                       FROM InsurancePlan
                       GROUP BY StateCode`, function (err, rows) {
           if (err) {
-            reject(null);
+            reject(err);
           }
           resolve(rows);
         });
@@ -104,7 +104,7 @@ const queries = {
                       ${conditionalString}
                       GROUP BY StateCode`, function (err, rows) {
           if (err) {
-            reject(null);
+            reject(err);
           }
           resolve(rows);
         });
@@ -245,7 +245,8 @@ const queries = {
                       ORDER BY IndividualRate ASC
                       LIMIT 3`, function (err, rows) {
           if (err) {
-            reject(null);
+            console.log("> CheapestPlans", err);
+            reject(err);
           }
           resolve(rows);
         });
