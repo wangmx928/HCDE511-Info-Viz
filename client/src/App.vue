@@ -2,19 +2,17 @@
   <div id="app">
     <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <Loading />
-    <GeneralFilters v-bind:insuranceQualities="insuranceQualities" />
+    <GeneralFilters />
 
     <Navigation />
 
-    <StateBased v-bind:insuranceQualities="insuranceQualities" />
+    <StateBased />
 
     <PlanBased />
   </div>
 </template>
 
 <script>
-import { endpoints } from "./constants.js";
-import axios from "axios";
 import Navigation from "./components/Navigation.vue";
 import StateBased from "./components/StateBased.vue";
 import PlanBased from "./components/PlanBased.vue";
@@ -32,31 +30,11 @@ export default {
   },
   data() {
     return {
-      insuranceQualities: [{}],
       selectedStateFromMap: null
     };
   },
-  methods: {
-    async getAllHealthInsuranceQuality() {
-      try {
-        const res = await axios.post(endpoints.insuranceQuality, {
-          crossDomain: true,
-          query: `{
-                      InsuranceQuality {
-                        State
-                        USNewsRank
-                        WalletHubCompositeScore
-                      }
-                    }`
-        });
-        this.insuranceQualities = res.data.data.InsuranceQuality;
-      } catch (e) {
-        console.log("err", e);
-      }
-    }
-  },
   mounted() {
-    this.getAllHealthInsuranceQuality();
+    this.$store.dispatch("getAllHealthInsuranceQualityData");
   }
 };
 </script>

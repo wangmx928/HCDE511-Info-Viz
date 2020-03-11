@@ -1,25 +1,38 @@
 <template>
   <div id="plan-based-view">
-    <div deck class="list-plans">
-      <ListPlanCard title="Cheapest Plans" />
+    <div class="plan-info-section">
+      <div class="plan-title">
+        <img alt="plan-based View Icon" src="../assets/plan.png" />
+        <div>PLAN-BASED</div>
+      </div>
+
+      <div class="plan-info">
+        <b-icon icon="info" font-scale="1"></b-icon>
+        <div>Hover/click to see more information.</div>
+      </div>
+    </div>
+
+    <div id="plan-details">
+      <div class="rankedAttributes">
+        <AttributeCard
+          v-bind:title="`Selected Attributes`"
+          showAttributeName="true"
+          v-bind:selectedAttributeName="selectedAttribute"
+        />
+        <div v-for="(plan, index) in selectedAttributeLists" :key="plan.PlanId">
+          <AttributeCard
+            v-bind:index="index"
+            v-bind:plan="plan"
+            v-bind:selectedAttribute="matchHash[selectedAttribute]"
+          />
+        </div>
+      </div>
+
+      <div id="planBasedComparison"></div>
     </div>
 
     <div deck class="list-plans">
-      <div>
-        <div>{{selectedAttribute}}</div>
-        <div class="description" v-for="(plan, index) in selectedAttributeLists" :key="plan.PlanId">
-          <p>{{plan.PlanMarketingName}}</p>
-          <p>Rank #{{index + 1}} - {{plan[matchHash[selectedAttribute]]}}</p>
-        </div>
-      </div>
-      <figure class="highcharts-figure">
-        <div id="planBasedComparison"></div>
-        <p class="highcharts-description">
-          A spiderweb chart or radar chart is a variant of the polar chart.
-          Spiderweb charts are commonly used to compare multivariate data sets,
-          like this demo using six variables of comparison.
-        </p>
-      </figure>
+      <ListPlanCard title="Cheapest Plans" />
     </div>
   </div>
 </template>
@@ -27,6 +40,7 @@
 <script>
 import { mapState } from "vuex";
 import ListPlanCard from "./ListPlanCard.vue";
+import AttributeCard from "./AttributeCard.vue";
 import Highcharts from "highcharts";
 
 require("highcharts/highcharts-more")(Highcharts);
@@ -37,7 +51,8 @@ export default {
   name: "PlanBased",
   props: [],
   components: {
-    ListPlanCard
+    ListPlanCard,
+    AttributeCard
   },
   data() {
     return {
@@ -199,7 +214,9 @@ export default {
       let spirderGraphOption = {
         chart: {
           polar: true,
-          type: "line"
+          type: "line",
+          width: 800,
+          height: 600
         },
         title: {
           text: "Top 3 Chpeapest Insurance Plans Comparison - Ranking",
@@ -242,26 +259,13 @@ export default {
             '<span style="color:{series.color}">{series.name}: <b>{point.y:,.0f}</b><br/>'
         },
         legend: {
-          align: "right",
-          verticalAlign: "middle",
+          align: "center",
+          verticalAlign: "bottom",
           layout: "vertical"
         },
         series: seriesData,
         responsive: {
-          rules: [
-            {
-              condition: {
-                maxWidth: 800
-              },
-              chartOptions: {
-                legend: {
-                  align: "center",
-                  verticalAlign: "bottom",
-                  layout: "horizontal"
-                }
-              }
-            }
-          ]
+          rules: []
         }
       };
 
@@ -307,8 +311,64 @@ export default {
 
 <style scoped>
 #plan-based-view {
-  width: 80vw;
-  margin: 150px auto;
+  width: 100vw;
+  margin-top: 120px;
+}
+
+.plan-info-section {
+  display: inline-flex;
+  align-items: center;
+  width: 100vw;
+}
+
+.plan-title {
+  display: inline-flex;
+  margin-left: 75px;
+}
+
+.plan-title img {
+  width: 37px;
+  height: 37px;
+  display: inline-table;
+  margin: auto;
+}
+
+.plan-title div {
+  color: var(--optional-blue);
+  font-size: 20px;
+  font-weight: bold;
+  margin-left: 5px;
+  display: inline-table;
+}
+
+.plan-info {
+  color: var(--hover-grey);
+  font-size: 14px;
+  margin-left: 24px;
+}
+
+.plan-info {
+  display: inline-flex;
+}
+
+.plan-info .b-icon.bi {
+  margin: auto;
+}
+
+#plan-details {
+  display: flex;
+  margin-top: 20px;
+}
+
+#planBasedComparison {
+  width: 800px;
+  margin: auto;
+  display: inline-block;
+}
+
+.rankedAttributes {
+  display: inline-block;
+  margin-left: 74px;
 }
 
 .list-plans {
@@ -316,48 +376,5 @@ export default {
   justify-content: space-evenly;
   align-items: center;
   margin-top: 30px;
-}
-
-.highcharts-figure,
-.highcharts-data-table table {
-  min-width: 320px;
-  max-width: 800px;
-  margin: 1em auto;
-}
-
-.highcharts-data-table table {
-  font-family: Verdana, sans-serif;
-  border-collapse: collapse;
-  border: 1px solid #ebebeb;
-  margin: 10px auto;
-  text-align: center;
-  width: 100%;
-  max-width: 500px;
-}
-.highcharts-data-table caption {
-  padding: 1em 0;
-  font-size: 1.2em;
-  color: #555;
-}
-.highcharts-data-table th {
-  font-weight: 600;
-  padding: 0.5em;
-}
-.highcharts-data-table td,
-.highcharts-data-table th,
-.highcharts-data-table caption {
-  padding: 0.5em;
-}
-.highcharts-data-table thead tr,
-.highcharts-data-table tr:nth-child(even) {
-  background: #f8f8f8;
-}
-.highcharts-data-table tr:hover {
-  background: #f1f7ff;
-}
-
-.highcharts-series-hover path {
-  stroke: rgb(255, 66, 66);
-  stroke-width: 2px;
 }
 </style>

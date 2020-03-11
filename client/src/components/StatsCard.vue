@@ -1,8 +1,14 @@
 <template>
-  <div class="stats-card" v-b-tooltip.hover.v-info :title="toolTipText">
+  <div
+    class="stats-card"
+    v-b-tooltip.hover.v-info
+    :title="toolTipText"
+    @click="updateStateMapWithType"
+  >
     <div class="content">
-      <div v-if="this.title" class="title">
-        <b-icon icon="info" font-scale="1"></b-icon>
+      <div v-if="title" class="title">
+        <!-- <b-icon icon="info" font-scale="1"></b-icon> -->
+        <img alt="stats card icon" :src="getImgUrl()" />
         {{title}}
       </div>
       <div class="description">{{value}}</div>
@@ -14,7 +20,17 @@
 export default {
   name: "StatsCard",
   components: {},
-  props: ["title", "value", "type", "toolTip"],
+  props: ["title", "value", "type", "toolTip", "iconUrl"],
+  data() {
+    return {
+      iconUrlHash: {
+        State: "stats-state.png",
+        USNewsRank: "stats-rank.png",
+        WalletHubCompositeScore: "stats-comp-score.png",
+        AvgMonthlyPrice: "stats-avg.png"
+      }
+    };
+  },
   computed: {
     toolTipText: function() {
       if (this.toolTip) {
@@ -23,6 +39,15 @@ export default {
         }`;
       }
       return null;
+    }
+  },
+  methods: {
+    getImgUrl() {
+      return require("../assets/" + this.iconUrlHash[this.type]);
+    },
+    updateStateMapWithType() {
+      console.log(">> on stats card clicked", this.type);
+      this.$store.dispatch("updateStateMapWithType", this.type);
     }
   }
 };

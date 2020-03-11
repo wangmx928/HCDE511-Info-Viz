@@ -5,12 +5,15 @@ import Vuex from "vuex";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import AsyncComputed from "vue-async-computed";
 import App from "./App.vue";
+import VeeValidate from 'vee-validate';
+
 import { appStore } from "./store";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-vue/dist/bootstrap-vue.css";
 
 Vue.use(AsyncComputed);
+Vue.use(VeeValidate);
 Vue.use(Vuex);
 Vue.use(BootstrapVue);
 Vue.use(IconsPlugin);

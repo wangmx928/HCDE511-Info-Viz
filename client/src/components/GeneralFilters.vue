@@ -6,6 +6,7 @@
         class="site-short-desc"
       >An interactive dashboard to understand and explore health insurance in the United States</p>
     </div>
+
     <div class="filter-info-section">
       <div class="filter-title">
         <img alt="Filter Icon" src="../assets/filter.png" />
@@ -27,30 +28,43 @@
     <b-form>
       <div class="exposed-filters">
         <b-form inline class="filter-row">
-          <b-input-group prepend="Age">
-            <b-form-select id="age-input" prepend="Age" :options="ageOptions" v-model="selectedAge"></b-form-select>
+          <b-input-group prepend="Age" size="sm">
+            <b-form-select
+              id="age-input"
+              prepend="Age"
+              :options="ageOptions"
+              size="sm"
+              v-model="selectedAge"
+            ></b-form-select>
           </b-input-group>
 
-          <b-form-select v-model="selectedState" :options="stateOptions"></b-form-select>
+          <b-form-select v-model="selectedState" :options="stateOptions" size="sm"></b-form-select>
 
-          <b-input-group class="sm">
+          <b-input-group>
             <b-form-input
               id="min-price"
               v-model="selectedMinPrice"
+              :state="minPriceState"
               type="number"
-              placeholder="Min Price：100"
+              placeholder="Max Price: 0"
               debounce="1000"
+              size="sm"
             ></b-form-input>
+            <!-- This will only be shown if the preceding input has an invalid state -->
+            <b-form-invalid-feedback id="input-live-feedback">Please enter price more than 0</b-form-invalid-feedback>
           </b-input-group>
 
-          <b-input-group class="sm">
+          <b-input-group>
             <b-form-input
               id="max-price"
               v-model="selectedMaxPrice"
+              :state="maxPriceState"
               type="number"
-              placeholder="Max Price: 600"
+              placeholder="Max Price: 800"
               debounce="1000"
+              size="sm"
             ></b-form-input>
+            <b-form-invalid-feedback id="input-live-feedback">Please enter price less than 800</b-form-invalid-feedback>
           </b-input-group>
 
           <div class="filter-labels">Plan Type</div>
@@ -59,6 +73,7 @@
             v-model="selectedPlanType"
             :options="planTypeOptions"
             switches
+            size="sm"
           ></b-form-checkbox-group>
         </b-form>
 
@@ -77,6 +92,7 @@
                     v-on="inputHandlers"
                     :disabled="disabled || coveredDiseaseOptions.length === 0"
                     :options="coveredDiseaseOptions"
+                    size="sm"
                   >
                     <template v-slot:first>
                       <option disabled value>Covered Disease Programs</option>
@@ -105,14 +121,21 @@
 <script>
 export default {
   name: "GeneralFilters",
-  components: {},
-  props: ["insuranceQualities"],
-  data() {
-    return {
-      availableStateList: []
-    };
-  },
   computed: {
+    minPriceState() {
+      if (this.selectedMinPrice) {
+        return this.selectedMinPrice >= 0;
+      } else {
+        return null;
+      }
+    },
+    maxPriceState() {
+      if (this.selectedMaxPrice) {
+        return this.selectedMaxPrice < 800;
+      } else {
+        return null;
+      }
+    },
     selectedAge: {
       get() {
         return this.$store.state.selectedFilters.age;
@@ -165,11 +188,15 @@ export default {
         return this.$store.state.selectedFilters.price.min;
       },
       set(newVal) {
-        this.$store.dispatch("updateContentBySelectedFilter", {
-          newVal,
-          filterType: "price",
-          type: "min"
-        });
+        if (newVal == this.selectedMinPrice) {
+          return;
+        } else {
+          this.$store.dispatch("updateContentBySelectedFilter", {
+            newVal,
+            filterType: "price",
+            type: "min"
+          });
+        }
       }
     },
     selectedMaxPrice: {
@@ -177,6 +204,10 @@ export default {
         return this.$store.state.selectedFilters.price.max;
       },
       set(newVal) {
+        if (newVal == this.selectedMaxPrice) {
+          return;
+        }
+
         this.$store.dispatch("updateContentBySelectedFilter", {
           newVal,
           filterType: "price",
@@ -290,7 +321,7 @@ export default {
   width: 1000px;
   display: flex;
   justify-content: space-evenly;
-  margin: 15px 0 auto 63px;
+  margin: 10px 0 auto 63px;
 }
 
 .filter-labels {
@@ -298,7 +329,7 @@ export default {
 }
 
 .coveredDiseases {
-  margin: 15px 0 auto 74px;
+  margin: 12px 0 auto 87px;
 }
 
 .exposed-filters {
@@ -335,10 +366,6 @@ export default {
 
 .exposed-filters .list-inline .list-inline-item {
   margin: 3px;
-}
-
-.input-group-prepend {
-  height: 38px;
 }
 
 #min-price,

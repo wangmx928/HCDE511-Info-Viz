@@ -1,8 +1,10 @@
 <template>
   <div v-if="isLoading" id="loadingPlaceholder">
-    <b-spinner label="Loading..."></b-spinner>
-    <div v-for="comp in currentLoadingComponent" :key="comp">
-      <p>{{comp}} is trying hard to load</p>
+    <div class="wrapper">
+      <b-spinner label="Loading..."></b-spinner>
+      <div v-for="comp in currentLoadingComponent" :key="comp">
+        <p>{{comp}} is trying hard to load</p>
+      </div>
     </div>
   </div>
 </template>
@@ -31,9 +33,12 @@ export default {
   top: 0;
   left: 0;
   background-color: #ffffff80;
+  justify-content: space-evenly;
 }
 
-#loadingPlaceholder span {
-  margin: auto;
+#loadingPlaceholder .wrapper {
+  margin-top: 45vh;
+  text-align: center;
+  font-size: 32px;
 }
 </style>

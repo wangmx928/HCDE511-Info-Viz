@@ -14,7 +14,7 @@
 
     <div id="state-map">
       <div v-b-visible="handleStatsVisibility" class="stats-badge vertical">
-        <StatsCard title="State" v-bind:value="highlightedState.State" />
+        <StatsCard title="State" v-bind:value="highlightedState.State" type="State" />
         <StatsCard
           title="US News Rank"
           v-bind:value="`#${highlightedState.USNewsRank}`"
@@ -30,25 +30,9 @@
         <StatsCard
           title="Avg Monthly Price"
           v-bind:value="`$${highlightedState.AverageMonthlyPrice}`"
+          type="AvgMonthlyPrice"
         />
       </div>
-
-      <transition name="fade">
-        <div v-if="showFixedCollapsedStats && highlightedState.State != '-'" class="floated-stats">
-          <StatsCard v-bind:value="highlightedState.State" noIcon="true" />
-          <StatsCard
-            v-bind:value="`#${highlightedState.USNewsRank}`"
-            type="USNewsRank"
-            noIcon="true"
-          />
-          <StatsCard
-            v-bind:value="highlightedState.WalletHubCompositeScore"
-            type="WalletHubCompositeScore"
-          />
-          <StatsCard v-bind:value="`$${highlightedState.AverageMonthlyPrice}`" />
-        </div>
-      </transition>
-
       <div v-if="showErrorMessage">Error, please refresh the page...</div>
       <div id="tile-map"></div>
     </div>
@@ -68,7 +52,7 @@ require("highcharts/modules/tilemap")(Highcharts);
 export default {
   name: "StateBased",
   components: { StatsCard },
-  props: ["insuranceQualities"],
+  props: [],
   data() {
     return {
       tileMapChart: null,
@@ -83,14 +67,14 @@ export default {
     };
   },
   computed: {
-    selectedStateFilterName() {
-      return this.$store.state.selectedFilters.state.name;
-    },
     averageStatePremium() {
       return this.$store.state.averageStatePremium;
     },
-    averageStatePremiumPriceRange() {
-      return this.$store.state.averageStatePremiumPriceRange;
+    insuranceQualities() {
+      return this.$store.state.insuranceQualities;
+    },
+    selectedStateFilterName() {
+      return this.$store.state.selectedFilters.state.name;
     },
     stateWithHighestCompScore() {
       return this._.maxBy(this.insuranceQualities, "WalletHubCompositeScore");
@@ -103,16 +87,76 @@ export default {
     handleStatsVisibility(isVisible) {
       this.showFixedCollapsedStats = !isVisible;
     },
-    generateTileMap(seriesData) {
-      let chartOptions = {
+    getSeriesData(rawData) {
+      let avgPriceRange = this.$store.state.avgPriceRange;
+      console.log(">> rawData", rawData);
+      console.log(">> avgPriceRange", avgPriceRange);
+      return [
+        {
+          name: "AverageMonthlyRatePerState",
+          min: avgPriceRange.min,
+          max: avgPriceRange.max,
+          cursor: "pointer",
+          events: {
+            click: event => {
+              //TODO: Work on the greying out effect
+
+              if (rawData[stateNameToCode[event.point.name]]) {
+                this.highlightedState = this._.find(
+                  this.insuranceQualities,
+                  o => {
+                    return o.State == event.point.name;
+                  }
+                );
+                this.highlightedState.AverageMonthlyPrice = event.point.value;
+                this.$store.dispatch("updateContentBySelectedFilter", {
+                  newVal: this.highlightedState.State,
+                  filterType: "state",
+                  type: "name"
+                });
+              } else {
+                console.log(
+                  "No data for the clicked state: ",
+                  event.point.name
+                );
+              }
+            }
+          },
+          data: stateGeoLocations.map(point => {
+            if (rawData[point.stateCode]) {
+              if (point.value == "AK") {
+                console.log("???rawData", point);
+              }
+              point.value = rawData[point.stateCode];
+              point.color = null;
+            } else {
+              if (point.value == "AK") {
+                console.log("wwwwwww");
+                console.log(point);
+              }
+              console.log(point);
+              point.value = null;
+              point.color = "#4f5d6750";
+              point.dataLabels = {
+                color: "#FFFFFF",
+                text: null
+              };
+            }
+            return point;
+          })
+        }
+      ];
+    },
+    getTileMapOptions(seriesData) {
+      return {
         chart: {
           type: "tilemap",
           inverted: true,
-          width: "1000",
-          height: "700"
+          width: "800",
+          height: "550"
         },
         title: {
-          text: "US Insurance Plan Spread"
+          text: "Average Monthly Premium Rate Per State in U.S. 2020"
         },
         subtitle: {
           text:
@@ -127,7 +171,7 @@ export default {
         colorAxis: {
           min: seriesData.min,
           max: seriesData.max,
-          minColor: "#fafbfb",
+          minColor: "#C7D8E8",
           maxColor: "#3078b5"
         },
         tooltip: {
@@ -185,21 +229,41 @@ export default {
           ]
         }
       };
+    },
+    generateTileMap(chartOptions) {
       if (!this.tileMapChart) {
         this.tileMapChart = Highcharts.chart("tile-map", chartOptions);
       } else {
         this.tileMapChart.update(chartOptions);
       }
-
       // Last Step on this page
       this.$store.commit("stateBasedViewIsLoading", false);
       return;
     }
   },
   mounted() {
-    this.$store.dispatch("updateStateMap");
+    this.$store.dispatch("updateStateMapWithType", "averageStatePremium");
   },
   watch: {
+    averageStatePremium(newVal) {
+      if (this.$store.state.currentStateMapType != "averageStatePremium") {
+        return;
+      }
+      this.$store.commit("stateBasedViewIsLoading", true);
+
+      let seriesData = this.getSeriesData(newVal);
+      let chartOptions = this.getTileMapOptions(seriesData);
+
+      if (!this.tileMapChart) {
+        console.log("> chartOptions", chartOptions);
+        this.tileMapChart = Highcharts.chart("tile-map", chartOptions);
+      } else {
+        console.log("> has tilemap", chartOptions);
+        this.tileMapChart.update(chartOptions);
+      }
+
+      this.$store.commit("stateBasedViewIsLoading", false);
+    },
     selectedStateFilterName(newVal) {
       if (!newVal) {
         this.highlightedState = {
@@ -213,54 +277,6 @@ export default {
           return o.State == newVal;
         });
       }
-    },
-    averageStatePremium() {
-      let tileMapSeriesData = [
-        {
-          name: "AverageMonthlyRatePerState",
-          min: this.averageStatePremiumPriceRange.min,
-          max: this.averageStatePremiumPriceRange.max,
-          cursor: "pointer",
-          events: {
-            click: event => {
-              //TODO: Work on the greying out effect
-              if (this.averageStatePremium[stateNameToCode[event.point.name]]) {
-                this.highlightedState = this._.find(
-                  this.insuranceQualities,
-                  o => {
-                    return o.State == event.point.name;
-                  }
-                );
-                this.highlightedState.AverageMonthlyPrice = event.point.value;
-                this.$store.dispatch("updateContentBySelectedFilter", {
-                  newVal: this.highlightedState.State,
-                  filterType: "state",
-                  type: "name"
-                });
-              } else {
-                console.log(
-                  "No data for the clicked state: ",
-                  event.point.name
-                );
-              }
-            }
-          },
-          data: stateGeoLocations.map(point => {
-            if (this.averageStatePremium[point.stateCode]) {
-              point.value = this.averageStatePremium[point.stateCode];
-              point.color = null;
-            } else {
-              point.value = null;
-              point.color = "#4f5d6750";
-              point.dataLabels = {
-                color: "#FFFFFF"
-              };
-            }
-            return point;
-          })
-        }
-      ];
-      this.generateTileMap(tileMapSeriesData);
     }
   }
 };
@@ -272,7 +288,7 @@ export default {
 }
 
 #state-map {
-  width: 90vw;
+  width: 95vw;
   margin: auto;
   display: inline-flex;
   justify-content: space-evenly;
@@ -373,3 +389,21 @@ export default {
 @media screen and (min-width: 480px) {
 }
 </style>
+
+
+<!--
+<transition name="fade">
+  <div v-if="showFixedCollapsedStats && highlightedState.State != '-'" class="floated-stats">
+    <StatsCard v-bind:value="highlightedState.State" noIcon="true" />
+    <StatsCard
+      v-bind:value="`#${highlightedState.USNewsRank}`"
+      type="USNewsRank"
+      noIcon="true"
+    />
+    <StatsCard
+      v-bind:value="highlightedState.WalletHubCompositeScore"
+      type="WalletHubCompositeScore"
+    />
+    <StatsCard v-bind:value="`$${highlightedState.AverageMonthlyPrice}`" />
+  </div>
+</transition>-->

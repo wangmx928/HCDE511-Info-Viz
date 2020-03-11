@@ -1,6 +1,24 @@
 import axios from "axios";
 import { endpoints } from "./constants";
 
+export const getAllHealthInsuranceQuality = async () => {
+  try {
+    const res = await axios.post(endpoints.insuranceQuality, {
+      crossDomain: true,
+      query: `{
+                InsuranceQuality {
+                  State
+                  USNewsRank
+                  WalletHubCompositeScore
+                }
+              }`
+    });
+    return res.data.data.InsuranceQuality;
+  } catch (e) {
+    console.log("err", e);
+  }
+};
+
 export const getAvgMonthlyPremiumByParams = async params => {
   const res = await axios.post(endpoints.insurancePlans, {
     crossDomain: true,
@@ -148,94 +166,12 @@ export const getCoveredDiseasesFilterOptions = async params => {
   }
 };
 
-// export const extractDistinctFiltersList = async (state, filterType) => {
-//   this.$store.commit("filterIsLoading", true);
 
-//   let result = await getAvailableFilterLists();
-//   let distinctStateCode = [
-//     ...new Set(this._.map(result, row => row.StateCode))
-//   ];
-//   let distinctPlanType = [
-//     ...new Set(this._.map(result, row => row.PlanType))
-//   ];
-//   let distinctAge = [...new Set(this._.map(result, row => row.Age))];
 //   // let distinctMetalLevel = {
 //   //   Bronze: this._.find(result, ["MetalLevel", "Bronze"]),
 //   //   ExpandedBronze: this._.find(result, ["MetalLevel", "Expanded Bronze"])
 //   // };
-//   let distinctCoveredDiseasePrograms = {
-//     Asthma: this._.find(result, ["CoveredAsthma", "True"]),
-//     Depression: this._.find(result, ["CoveredDepression", "True"]),
-//     Diabetes: this._.find(result, [("CoveredDiabetes", "True")]),
-//     HeartDisease: this._.find(result, [("CoveredHeartDisease", "True")]),
-//     HighBloodPressureCholesterol: this._.find(
-//       result[("CoveredHighBloodPressureCholesterol", "True")]
-//     ),
-//     LowBackPain: this._.find(result, [("CoveredLowBackPain", "True")]),
-//     PainManagement: this._.find(result[("CoveredPainManagement", "True")]),
-//     Pregnancy: this._.find(result, [("CoveredPregnancy", "True")]),
-//     WeightLossPrograms: this._.find(
-//       result[("CoveredWeightLossPrograms", "True")]
-//     )
-//   };
-
-//   if (filterType != "PlanType") {
-//     let updatedPlanOptions = filterOptions.map(plan => {
-//       let hasValue = new Set(distinctPlanType).has(plan.text || plan);
-//       return {
-//         text: plan.text || plan,
-//         value: hasValue ? plan.text || plan : null,
-//         disabled: !hasValue
-//       };
-//     });
-
-//     console.log(">>> updatedPlanOptions", updatedPlanOptions);
-//     filterOptions = updatedPlanOptions;
-//     // this.selectedPlanType = this._.filter(this.selectedPlanType, plan => {
-//     //   !disabledSet.has(plan);
-//     // });
-//   }
-//   if (filterType != "Age") {
-//     let ageSet = new Set(distinctAge);
-//     this.availableAgeOptions = [{ value: null, text: "All" }].concat(
-//       this._.range(18, 31).map(function (age) {
-//         return { text: age, disabled: !ageSet.has(age) };
-//       })
-//     );
-//   }
-
-//   if (filterType != "CoveredDiseases") {
-//     defaultCoveredDiseasesPrograms.map(function (program) {
-//       return distinctCoveredDiseasePrograms[program]
-//         ? program
-//         : { text: program, disabled: true };
-//     });
-//   }
 
 //   // if (filterType != "MetalLevel") {
 //   //   this.metalLevelOptions = distinctMetalLevel;
 //   // }
-
-//   if (filterType != "StateCode") {
-//     // TODO: Bugs
-//     let resultWithOnlyPreselectedState =
-//       distinctStateCode.length == 1 &&
-//       distinctStateCode[0] == this.selectedState;
-
-//     console.log(
-//       ">> resultWithOnlyPreselectedState",
-//       resultWithOnlyPreselectedState
-//     );
-
-//     if (!resultWithOnlyPreselectedState) {
-//       this.availableStateList = distinctStateCode;
-//     }
-//   } else {
-//     // Triggered by state filter
-//     if (!this.selectedState) {
-//       this.availableStateList = distinctStateCode;
-//     }
-//   }
-//   this.$store.commit("filterIsLoading", false);
-//   return;
-// };

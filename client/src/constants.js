@@ -1,14 +1,14 @@
 // PRODUCTION
-// export const endpoints = {
-//   insuranceQuality: "https://agile-tundra-42522.herokuapp.com:443/graphql/insuranceQuality",
-//   insurancePlans: "https://agile-tundra-42522.herokuapp.com:443/graphql/insurancePlans"
-// }
+export const endpoints = {
+  insuranceQuality: "https://agile-tundra-42522.herokuapp.com:443/graphql/insuranceQuality",
+  insurancePlans: "https://agile-tundra-42522.herokuapp.com:443/graphql/insurancePlans"
+}
 
 // DEVELOPMENT
-export const endpoints = {
-  insuranceQuality: "http://localhost:3000/graphql/insuranceQuality",
-  insurancePlans: "http://localhost:3000/graphql/insurancePlans"
-};
+// export const endpoints = {
+//   insuranceQuality: "http://localhost:3000/graphql/insuranceQuality",
+//   insurancePlans: "http://localhost:3000/graphql/insurancePlans"
+// };
 
 export const defaultPlanTypes = ["EPO", "HMO", "POS", "PPO"];
 
@@ -20,7 +20,7 @@ export const defaultCoveredDiseasesPrograms = [
   "Weight Loss Programs",
   "Heart Disease",
   "Pain Management",
-  "High Blood Pressure & Cholesterol",
+  "High Blood Pressure & High Cholesterol",
   "Diabetes"
 ];
 
