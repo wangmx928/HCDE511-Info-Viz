@@ -46,7 +46,7 @@
               v-model="selectedMinPrice"
               :state="minPriceState"
               type="number"
-              placeholder="Max Price: 0"
+              placeholder="Min Price: 0"
               debounce="1000"
               size="sm"
             ></b-form-input>

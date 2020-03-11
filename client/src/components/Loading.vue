@@ -28,11 +28,11 @@ export default {
   height: 100vh;
   width: 100vw;
   color: var(--theme-blue);
-  z-index: 10;
+  z-index: 50;
   position: fixed;
   top: 0;
   left: 0;
-  background-color: #ffffff80;
+  background-color: #ffffff90;
   justify-content: space-evenly;
 }
 

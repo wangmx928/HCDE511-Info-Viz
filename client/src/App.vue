@@ -1,13 +1,9 @@
 <template>
   <div id="app">
-    <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
     <Loading />
-    <GeneralFilters />
-
     <Navigation />
-
+    <GeneralFilters />
     <StateBased />
-
     <PlanBased />
   </div>
 </template>

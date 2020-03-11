@@ -172,7 +172,7 @@ export default {
           min: seriesData.min,
           max: seriesData.max,
           minColor: "#C7D8E8",
-          maxColor: "#3078b5"
+          maxColor: "#005BB0"
         },
         tooltip: {
           formatter: function() {

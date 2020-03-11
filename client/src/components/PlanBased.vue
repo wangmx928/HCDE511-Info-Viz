@@ -18,6 +18,7 @@
           v-bind:title="`Selected Attributes`"
           showAttributeName="true"
           v-bind:selectedAttributeName="selectedAttribute"
+          v-bind:selectedAttribute="matchHash[selectedAttribute]"
         />
         <div v-for="(plan, index) in selectedAttributeLists" :key="plan.PlanId">
           <AttributeCard
@@ -148,12 +149,15 @@ export default {
           };
         })(this);
 
-        seriesData = cheapestPlans.map(function(plan) {
+        let colors = ["#EB8537", "#72CFCF", "#4B2472"];
+
+        seriesData = cheapestPlans.map(function(plan, index) {
           return {
             name: plan.PlanMarketingName,
             events: {
               click: clickFunctionWrapper
             },
+            color: colors[index],
             data: [
               indexOf(attributesHash["IndividualRate"], plan.IndividualRate) +
                 1,
@@ -218,9 +222,16 @@ export default {
           width: 800,
           height: 600
         },
+        plotOptions: {
+          series: {
+            cursor: "pointer"
+          }
+        },
+        subtitle: {
+          text: "Comparison Ranking"
+        },
         title: {
-          text: "Top 3 Chpeapest Insurance Plans Comparison - Ranking",
-          x: -80
+          text: "Among 3 Chpeapest Insurance Plans"
         },
         pane: {
           size: "70%"
@@ -246,22 +257,25 @@ export default {
         },
         yAxis: {
           gridLineInterpolation: "polygon",
+          className: "spider-chart-y-axis",
           reversed: true,
+          tickPositions: [0, 1, 2, 3, 4],
           lineWidth: 0,
-          min: 0
+          labels: {
+            format: "Rank {value}"
+          }
         },
         tooltip: {
           shared: true,
-          positioner: function() {
-            return { x: 450, y: 450 };
-          },
+          // positioner: function() {
+          //   return { x: 450, y: 450 };
+          // },
           pointFormat:
-            '<span style="color:{series.color}">{series.name}: <b>{point.y:,.0f}</b><br/>'
+            '<span style="color:{series.color}">{series.name}: <br/><b>Relative Ranking: {point.y:,.0f}</b><br/>'
         },
         legend: {
           align: "center",
-          verticalAlign: "bottom",
-          layout: "vertical"
+          verticalAlign: "bottom"
         },
         series: seriesData,
         responsive: {

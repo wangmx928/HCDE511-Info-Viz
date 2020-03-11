@@ -15,15 +15,15 @@ export const endpoints = {
 export const defaultPlanTypes = ["EPO", "HMO", "POS", "PPO"];
 
 export const defaultCoveredDiseasesPrograms = [
-  "Pregnancy",
-  "Depression",
   "Asthma",
-  "Low Back Pain",
-  "Weight Loss Programs",
+  "Depression",
+  "Diabetes",
   "Heart Disease",
-  "Pain Management",
   "High Blood Pressure & High Cholesterol",
-  "Diabetes"
+  "Low Back Pain",
+  "Pain Management",
+  "Pregnancy",
+  "Weight Loss Programs"
 ];
 
 export const stateNameToCode = {
