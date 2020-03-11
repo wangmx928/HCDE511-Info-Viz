@@ -1,8 +1,10 @@
 // PRODUCTION
 export const endpoints = {
-  insuranceQuality: "https://agile-tundra-42522.herokuapp.com:443/graphql/insuranceQuality",
-  insurancePlans: "https://agile-tundra-42522.herokuapp.com:443/graphql/insurancePlans"
-}
+  insuranceQuality:
+    "https://agile-tundra-42522.herokuapp.com:443/graphql/insuranceQuality",
+  insurancePlans:
+    "https://agile-tundra-42522.herokuapp.com:443/graphql/insurancePlans"
+};
 
 // DEVELOPMENT
 // export const endpoints = {

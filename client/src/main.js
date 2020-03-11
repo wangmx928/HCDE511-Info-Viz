@@ -5,7 +5,7 @@ import Vuex from "vuex";
 import { BootstrapVue, IconsPlugin } from "bootstrap-vue";
 import AsyncComputed from "vue-async-computed";
 import App from "./App.vue";
-import VeeValidate from 'vee-validate';
+import VeeValidate from "vee-validate";
 
 import { appStore } from "./store";
 

@@ -44,7 +44,7 @@ export const appStore = {
     averageStatePremium: null,
     avgPriceRange: null,
     cheapestPlans: [],
-    currentStateMapType: 'averageStatePremium',
+    currentStateMapType: "averageStatePremium",
     insuranceQualities: null,
     availableFilterOptions: {
       age: null,
@@ -150,7 +150,7 @@ export const appStore = {
     },
     updatePageAccordingToFiltersResult({ dispatch, state }, filterType) {
       dispatch("getFiltersOptionsWithDisabledMark", filterType);
-      if (state.currentStateMapType == 'averageStatePremium') {
+      if (state.currentStateMapType == "averageStatePremium") {
         dispatch("updateStateMap");
       }
       dispatch("updateCheapestPlan");
@@ -186,11 +186,17 @@ export const appStore = {
             } else {
               if (type == "code") {
                 if (newVal) {
-                  commit("updateSelectedStateFilter", { code: newVal, name: stateCodeToName[newVal] });
+                  commit("updateSelectedStateFilter", {
+                    code: newVal,
+                    name: stateCodeToName[newVal]
+                  });
                 }
               } else if (type == "name") {
                 if (newVal) {
-                  commit("updateSelectedStateFilter", { name: newVal, code: stateNameToCode[newVal] });
+                  commit("updateSelectedStateFilter", {
+                    name: newVal,
+                    code: stateNameToCode[newVal]
+                  });
                 }
               }
             }
@@ -199,9 +205,15 @@ export const appStore = {
         } else if (filterType == "price") {
           let newPrice = null;
           if (type == "min") {
-            newPrice = { min: parseInt(newVal), max: state.selectedFilters.price.max };
+            newPrice = {
+              min: parseInt(newVal),
+              max: state.selectedFilters.price.max
+            };
           } else if (type == "max") {
-            newPrice = { min: state.selectedFilters.price.min, max: parseInt(newVal) }
+            newPrice = {
+              min: state.selectedFilters.price.min,
+              max: parseInt(newVal)
+            };
           }
           commit("setSelectedFilters", { newVal: newPrice, type: filterType });
           dispatch("updatePageAccordingToFiltersResult", filterType);
@@ -219,28 +231,28 @@ export const appStore = {
       commit("filterIsLoading", true);
 
       let funcs = {
-        age: async function (selectedFilters) {
+        age: async function(selectedFilters) {
           console.log("commit('updateAvailableAgeFilterOptions'");
           commit(
             "updateAvailableAgeFilterOptions",
             await getAgeFilterOptions(selectedFilters)
           );
         },
-        state: async function (selectedFilters) {
+        state: async function(selectedFilters) {
           console.log("commit('updateAvailableStateFilterOptions'");
           commit(
             "updateAvailableStateFilterOptions",
             await getStateFilterOptions(selectedFilters)
           );
         },
-        planType: async function (selectedFilters) {
+        planType: async function(selectedFilters) {
           console.log("commit('updateAvailablePlanTypeFilterOptions'");
           commit(
             "updateAvailablePlanTypeFilterOptions",
             await getPlanTypeFilterOptions(selectedFilters)
           );
         },
-        coveredDiseasesPrograms: async function (selectedFilters) {
+        coveredDiseasesPrograms: async function(selectedFilters) {
           console.log("commit('updateAvailableCoveredDiseasesFilterOptions'");
           commit(
             "updateAvailableCoveredDiseasesFilterOptions",
@@ -249,7 +261,7 @@ export const appStore = {
         }
       };
 
-      ["age", "state", "planType", "coveredDiseasesPrograms"].forEach(function (
+      ["age", "state", "planType", "coveredDiseasesPrograms"].forEach(function(
         name
       ) {
         if (name != filterType) {
@@ -279,10 +291,10 @@ export const appStore = {
       dispatch("updateCheapestPlan");
     },
     async updateStateMapWithType({ commit, state }, type) {
-      console.log("> updateStateMapWithType")
+      console.log("> updateStateMapWithType");
       commit("stateBasedViewIsLoading", true);
 
-      if (type == 'averageStatePremium') {
+      if (type == "averageStatePremium") {
         commit(
           "hasAvgStatePremiumData",
           await getAvgMonthlyPremiumByParams(state.selectedFilters)
@@ -292,8 +304,8 @@ export const appStore = {
       commit("stateBasedViewIsLoading", false);
     },
     async getAllHealthInsuranceQualityData({ commit }) {
-      console.log("> get quality data from store")
-      commit("updateHealthQualityData", await getAllHealthInsuranceQuality())
+      console.log("> get quality data from store");
+      commit("updateHealthQualityData", await getAllHealthInsuranceQuality());
     }
   },
   mutations: {
@@ -318,7 +330,7 @@ export const appStore = {
     },
     updateAvailableAgeFilterOptions(state, data) {
       let ageSet = new Set(_.map(data, row => row.Age));
-      let result = defaultFiltersOptions.age.map(function (age) {
+      let result = defaultFiltersOptions.age.map(function(age) {
         if (age.value == null) {
           return age;
         }
@@ -329,7 +341,7 @@ export const appStore = {
     updateAvailableStateFilterOptions(state, data) {
       let distinctStateCode = new Set(_.map(data, row => row.StateCode));
 
-      let result = defaultFiltersOptions.state.map(function (state) {
+      let result = defaultFiltersOptions.state.map(function(state) {
         if (state.value == null) {
           return state;
         }
@@ -346,7 +358,7 @@ export const appStore = {
       let distinctPlanType = new Set(_.map(data, row => row.PlanType));
       let hasValue = null;
       let updatedPlanOptions = defaultFiltersOptions.planType.map(plan => {
-        hasValue = distinctPlanType.has(plan)
+        hasValue = distinctPlanType.has(plan);
         return {
           text: plan,
           value: hasValue ? plan : null,
@@ -358,7 +370,7 @@ export const appStore = {
     },
     updateAvailableCoveredDiseasesFilterOptions(state, data) {
       let temp = new Set();
-      data.map(function (row) {
+      data.map(function(row) {
         temp = new Set(
           Array.from(temp).concat(
             row.DiseaseManagementProgramsOffered.split(",").map(item =>
@@ -367,10 +379,10 @@ export const appStore = {
           )
         );
       });
-      console.log('temp', temp);
+      console.log("temp", temp);
       state.availableFilterOptions.coveredDiseasesPrograms = defaultFiltersOptions.coveredDiseasesPrograms.map(
         item => {
-          console.log('item', item);
+          console.log("item", item);
           return temp.has(item) ? item : { text: item, disabled: true };
         }
       );
@@ -379,7 +391,7 @@ export const appStore = {
       if (data) {
         state.averageStatePremium = _.reduce(
           data,
-          function (res, row) {
+          function(res, row) {
             res[row.StateCode] = row.AvgMonthlyPremium;
             return res;
           },
@@ -390,7 +402,7 @@ export const appStore = {
         state.avgPriceRange = {
           min: _.head(priceRange),
           max: _.last(priceRange)
-        }
+        };
       }
     },
     hasCheapestPlanData(state, data) {

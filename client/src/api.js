@@ -162,7 +162,6 @@ export const getCoveredDiseasesFilterOptions = async params => {
   }
 };
 
-
 //   // let distinctMetalLevel = {
 //   //   Bronze: this._.find(result, ["MetalLevel", "Bronze"]),
 //   //   ExpandedBronze: this._.find(result, ["MetalLevel", "Expanded Bronze"])
