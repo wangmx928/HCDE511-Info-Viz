@@ -23,6 +23,8 @@ module.exports = {
         "Heart Disease": "CoveredHeartDisease",
         "Pain Management": "CoveredPainManagement",
         "High Blood Pressure & High Cholesterol": "CoveredHighBloodPressureCholesterol",
+        "High Blood Pressure And Cholesterol": "CoveredHighBloodPressureCholesterol",
+        "High Blood Pressure & Cholesterol": "CoveredHighBloodPressureCholesterol",
         "Diabetes": "CoveredDiabetes"
       };
       let condition = CoveredDiseases.map((diseaseName) => {
