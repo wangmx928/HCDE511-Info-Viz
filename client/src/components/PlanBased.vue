@@ -213,6 +213,7 @@ export default {
         };
       });
 
+      let reverse = this._.reverse;
       seriesData = this._.reverse(seriesData);
 
       let spirderGraphOption = {
@@ -270,8 +271,15 @@ export default {
           // positioner: function() {
           //   return { x: 450, y: 450 };
           // },
-          pointFormat:
-            '<span style="color:{series.color}">{series.name}: <br/><b>Relative Ranking: {point.y:,.0f}</b><br/>'
+          formatter: function() {
+            let reversedPoints = reverse(this.points);
+            let result = "";
+            reversedPoints.forEach(function(point) {
+              result += `<span style="color:${point.series.color}">${point.series.name}: <br/><b>Relative Ranking: ${point.y}</b><br/>`;
+            });
+            console.log("> result", result);
+            return result;
+          }
         },
         legend: {
           align: "center",
@@ -279,10 +287,7 @@ export default {
           layout: "vertical",
           reversed: true
         },
-        series: seriesData,
-        responsive: {
-          rules: []
-        }
+        series: seriesData
       };
 
       return spirderGraphOption;
