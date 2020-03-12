@@ -5,6 +5,7 @@
     <GeneralFilters />
     <StateBased />
     <PlanBased />
+    <Footer />
   </div>
 </template>
 
@@ -13,6 +14,7 @@ import Navigation from "./components/Navigation.vue";
 import StateBased from "./components/StateBased.vue";
 import PlanBased from "./components/PlanBased.vue";
 import Loading from "./components/Loading.vue";
+import Footer from "./components/Footer.vue";
 import GeneralFilters from "./components/GeneralFilters.vue";
 
 export default {
@@ -22,7 +24,8 @@ export default {
     StateBased,
     GeneralFilters,
     PlanBased,
-    Loading
+    Loading,
+    Footer
   },
   data() {
     return {

@@ -44,7 +44,10 @@ export const appStore = {
     averageStatePremium: null,
     avgPriceRange: null,
     cheapestPlans: [],
-    currentStateMapType: "averageStatePremium",
+    stateMapSize: {
+      width: "800",
+      height: "600",
+    },
     insuranceQualities: null,
     availableFilterOptions: {
       age: null,
@@ -148,11 +151,9 @@ export const appStore = {
       );
       commit("cheapestPlanIsLoading", false);
     },
-    updatePageAccordingToFiltersResult({ dispatch, state }, filterType) {
+    updatePageAccordingToFiltersResult({ dispatch }, filterType) {
       dispatch("getFiltersOptionsWithDisabledMark", filterType);
-      if (state.currentStateMapType == "averageStatePremium") {
-        dispatch("updateStateMap");
-      }
+      dispatch("updateStateMap");
       dispatch("updateCheapestPlan");
     },
     async updateContentBySelectedFilter(
@@ -303,6 +304,9 @@ export const appStore = {
     hasError(state, data) {
       state.hasError = true;
       state.errorOrigin = data;
+    },
+    updateStateMapSize(state, size) {
+      state.stateMapSize = size;
     },
     updateSelectedStateFilter(state, data) {
       state.selectedFilters.state.name = data.name;

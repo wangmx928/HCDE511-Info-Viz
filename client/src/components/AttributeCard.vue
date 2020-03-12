@@ -1,15 +1,15 @@
 <template>
   <div class="attribute-card" v-b-tooltip.right.hover.v-info :title="toolTipText">
     <div class="content">
-      <div v-if="showAttributeName">
+      <div v-if="showAttributeName" class="wrapper">
         <div v-if="cardTitle" class="title">
           <b-icon icon="info" font-scale="1"></b-icon>
           {{cardTitle}}
         </div>
-        <div class="description">{{description}}</div>
+        <div class="description" style="margin: auto;">{{description}}</div>
       </div>
 
-      <div v-if="!showAttributeName">
+      <div v-if="!showAttributeName && !placeholderCard" class="wrapper" style="margin: auto;">
         <div v-if="cardTitle" class="title">
           {{price}}
           <br />
@@ -18,6 +18,13 @@
           <b>{{`Rank #${this.index + 1}`}}</b>
         </div>
         <div class="description">{{description}}</div>
+      </div>
+
+      <div v-if="!showAttributeName && placeholderCard" class="wrapper">
+        <div class="description">{{`Rank #${this.index + 1}`}}</div>
+        <div class="title" style="margin: auto;">
+          <p>{{description}}</p>
+        </div>
       </div>
     </div>
   </div>
@@ -66,15 +73,15 @@ export default {
     "selectedAttribute",
     "selectedAttributeName",
     "index",
-    "showAttributeName"
+    "showAttributeName",
+    "placeholderCard"
   ],
   computed: {
     cardTitle: function() {
       if (this.title) {
         return this.title;
-      } else {
-        return this.plan.PlanMarketingName;
       }
+      return this.plan.PlanMarketingName;
     },
     price: function() {
       if (this.showAttributeName) {
@@ -83,10 +90,16 @@ export default {
       return `$${this.plan.IndividualRate}`;
     },
     description: function() {
-      if (this.showAttributeName) {
-        return this.selectedAttributeName;
+      if (this.placeholderCard) {
+        return "Click the attribute vertex on the map to see specific rank information.";
       }
-      return `${this.plan[this.selectedAttribute]}`;
+      if (this.showAttributeName) {
+        return this.selectedAttributeName || "-";
+      }
+      if (this.selectedAttribute) {
+        return `${this.plan[this.selectedAttribute]}`;
+      }
+      return "";
     },
     toolTipText: function() {
       if (this.showAttributeName) {
@@ -103,7 +116,8 @@ export default {
 
 <style scoped>
 .attribute-card {
-  width: 250px;
+  width: 280px;
+  height: 130px;
   margin: auto;
   margin-bottom: 20px;
   text-align: center;
@@ -114,14 +128,20 @@ export default {
   border-radius: 0.625rem;
   box-shadow: 0px 4px 20px rgba(14, 30, 94, 0.1);
 }
+.wrapper {
+  display: flex;
+  flex-flow: column;
+}
 
 .content {
-  padding: 20px 50px;
+  padding: 15px 25px;
+  display: flex;
 }
 
 .title {
   font-size: 14px;
 }
+
 .description {
   font-weight: bold;
   font-size: 20px;

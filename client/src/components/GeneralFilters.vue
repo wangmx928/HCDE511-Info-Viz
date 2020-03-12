@@ -8,14 +8,16 @@
     </div>
 
     <div class="filter-info-section">
-      <div class="filter-title">
-        <img alt="Filter Icon" src="../assets/filter.png" />
-        <div>FILTER</div>
-      </div>
+      <div>
+        <div class="filter-title">
+          <img alt="Filter Icon" src="../assets/filter.png" />
+          <div>FILTER</div>
+        </div>
 
-      <div class="filter-info">
-        <b-icon icon="info" font-scale="1"></b-icon>
-        <div>Input your demographic information & prefered plans and coverage to see a more cutomized insurance plan.</div>
+        <div class="filter-info">
+          <b-icon icon="info" font-scale="1"></b-icon>
+          <div>Input your demographic information & prefered plans and coverage to see a more cutomized insurance plan.</div>
+        </div>
       </div>
 
       <b-button
@@ -69,6 +71,7 @@
 
           <div class="filter-labels">Plan Type</div>
           <b-form-checkbox-group
+            name="planTypesContols"
             v-model="selectedPlanType"
             :options="planTypeOptions"
             switches
@@ -275,7 +278,8 @@ export default {
 }
 
 .filter-info-section {
-  display: inline-table;
+  display: flex;
+  justify-content: space-between;
 }
 
 .filter-title {
@@ -313,9 +317,8 @@ export default {
 }
 
 .reset-button {
-  position: fixed;
-  right: 65px;
-  top: 99px;
+  text-decoration: underline;
+  margin: auto 70px 0 0px;
 }
 
 .filter-row {

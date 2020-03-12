@@ -34,8 +34,10 @@
         />
       </div>
       <div v-if="showErrorMessage">Error, please refresh the page...</div>
-      <div id="tile-map"></div>
-      <div id="comp-score-map"></div>
+      <div class="graph-section">
+        <div id="tile-map"></div>
+        <div v-show="showCompScoreMap" id="comp-score-map"></div>
+      </div>
     </div>
   </div>
 </template>
@@ -68,10 +70,16 @@ export default {
         WalletHubCompositeScore: "-",
         AverageMonthlyPrice: "-"
       },
-      compScoreMap: null
+      compScoreMap: null,
+      subtitleText:
+        "Data is calculated based on the states in United States, which includes all ages and coverages. <br/>Changing filters will update the average rate showing on the map.",
+      showCompScoreMap: false
     };
   },
   computed: {
+    stateMapSize() {
+      return this.$store.state.stateMapSize;
+    },
     averageStatePremium() {
       return this.$store.state.averageStatePremium;
     },
@@ -103,7 +111,7 @@ export default {
           allowPointSelect: true,
           states: {
             select: {
-              borderColor: "#2b5c8a",
+              borderColor: "#000000",
               borderWidth: "3"
             }
           },
@@ -129,6 +137,7 @@ export default {
           },
           data: stateGeoLocations.map(point => {
             point.borderWidth = 0;
+            point.selected = false;
             if (rawData[point.stateCode]) {
               point.value = rawData[point.stateCode];
               point.color = null;
@@ -155,15 +164,14 @@ export default {
         chart: {
           type: "tilemap",
           inverted: true,
-          width: "800",
-          height: "550"
+          width: this.$store.state.stateMapSize.width,
+          height: this.$store.state.stateMapSize.height
         },
         title: {
           text: "Average Monthly Premium Rate Per State in U.S. 2020"
         },
         subtitle: {
-          text:
-            "Average Monthly Premium Rate. Can have link Source:<a href='https://simple.wikipedia.org/wiki/List_of_U.S._states_by_population'>Wikipedia</a>"
+          text: this.subtitleText
         },
         xAxis: {
           visible: false
@@ -209,39 +217,18 @@ export default {
           }
         },
         legend: {
-          layout: "vertical",
-          align: "right",
-          padding: 0,
-          y: -20
+          title: {
+            text: "Rate in US Dollar"
+          },
+          floating: true,
+          y: 80,
+          x: 130,
+          layout: "horizontal",
+          align: "center",
+          verticalAlign: "top"
         },
-        series: seriesData,
-        responsive: {
-          rules: [
-            {
-              condition: {
-                maxWidth: 500
-              },
-              chartOptions: {
-                legend: {
-                  align: "center",
-                  verticalAlign: "bottom",
-                  layout: "horizontal"
-                }
-              }
-            }
-          ]
-        }
+        series: seriesData
       };
-    },
-    generateTileMap(chartOptions) {
-      if (!this.tileMapChart) {
-        this.tileMapChart = Highcharts.chart("tile-map", chartOptions);
-      } else {
-        this.tileMapChart.update(chartOptions);
-      }
-      // Last Step on this page
-      this.$store.commit("stateBasedViewIsLoading", false);
-      return;
     },
     generateCompScoreMap() {
       let data = this.insuranceQualities.map(row => {
@@ -250,16 +237,39 @@ export default {
           low: row.WalletHubCompositeScore
         };
       });
+      data = this._.reverse(this._.sortBy(data, "low"));
       this.compScoreMap = Highcharts.chart("comp-score-map", {
         chart: {
-          type: "lollipop"
-        },
-        dataSorting: {
-          enabled: true
+          type: "lollipop",
+          width: "800",
+          height: "150"
         },
         plotOptions: {
           series: {
-            allowPointSelect: true
+            states: {
+              hover: {
+                halo: true
+              }
+            }
+          }
+        },
+        legend: {
+          enabled: false
+        },
+        title: {
+          text: "Wallet Hub Insurance Composite Score per State"
+        },
+        tooltip: {
+          formatter: function() {
+            return `Composite score for <b> ${this.point.name} </b> is <b>${this.point.low}</b>`;
+          }
+        },
+        xAxis: {
+          type: "category"
+        },
+        yAxis: {
+          title: {
+            text: "Composite Score"
           }
         },
         series: [{ data }]
@@ -269,6 +279,7 @@ export default {
       if (!newVal) {
         this.highlightedState = {
           State: "-",
+          Code: "-",
           USNewsRank: "-",
           WalletHubCompositeScore: "-",
           AverageMonthlyPrice: "-"
@@ -280,6 +291,10 @@ export default {
         if (temp == undefined || this._.isEmpty(temp)) {
           return;
         }
+        temp.AverageMonthlyPrice = this.averageStatePremium[
+          stateNameToCode[temp.State]
+        ];
+        this.highlightedState.Code = stateNameToCode[temp.State];
         this.highlightedState = temp;
       }
     }
@@ -288,15 +303,39 @@ export default {
     this.$store.dispatch("updateStateMapWithType", "averageStatePremium");
   },
   watch: {
-    insuranceQualities(newVal) {
-      if (newVal && newVal.length) {
-        // this.generateCompScoreMap();
+    stateMapSize(newVal) {
+      if (this.tileMapChart && newVal.width && newVal.height) {
+        let legend = null;
+        if (newVal.height > 500) {
+          this.tileMapChart.setTitle(null, { text: this.subtitleText }, false);
+          this.showCompScoreMap = false;
+          legend = {
+            y: 80,
+            x: 150
+          };
+        } else {
+          this.tileMapChart.setTitle(null, { text: null }, false);
+          this.showCompScoreMap = true;
+          legend = {
+            y: 30,
+            x: 80
+          };
+        }
+        this.tileMapChart.update({
+          chart: {
+            width: newVal.width,
+            height: newVal.height
+          },
+          legend
+        });
       }
     },
+    // insuranceQualities(newVal) {
+    //   if (newVal && newVal.length) {
+    //     this.generateCompScoreMap();
+    //   }
+    // },
     averageStatePremium(newVal) {
-      if (this.$store.state.currentStateMapType != "averageStatePremium") {
-        return;
-      }
       this.$store.commit("stateBasedViewIsLoading", true);
 
       let seriesData = this.getSeriesData(newVal);
@@ -327,6 +366,11 @@ export default {
   margin: auto;
   display: inline-flex;
   justify-content: space-evenly;
+}
+
+.graph-section {
+  display: flex;
+  flex-flow: column;
 }
 
 .state-info-section {

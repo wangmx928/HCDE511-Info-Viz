@@ -1,5 +1,5 @@
 module.exports = {
-  getConditionalString: ({ StateCode, Age, PlanType = [], CoveredDiseases = [], IndividualRateRange = { min: null, max: null } }) => {
+  getConditionalString: ({ StateCode, Age, PlanType, CoveredDiseases = [], IndividualRateRange = { min: null, max: null } }) => {
     let conditionalStatements = [];
     if (StateCode) {
       conditionalStatements.push(`(StateCode = "${StateCode}")`)

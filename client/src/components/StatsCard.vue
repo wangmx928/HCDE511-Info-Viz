@@ -1,10 +1,5 @@
 <template>
-  <div
-    class="stats-card"
-    v-b-tooltip.hover.v-info
-    :title="toolTipText"
-    @click="updateStateMapWithType"
-  >
+  <div class="stats-card" v-b-tooltip.hover.right.v-info :title="toolTipText">
     <div class="content">
       <div v-if="title" class="title">
         <!-- <b-icon icon="info" font-scale="1"></b-icon> -->
@@ -20,7 +15,15 @@
 export default {
   name: "StatsCard",
   components: {},
-  props: ["title", "value", "type", "toolTip", "iconUrl"],
+  props: [
+    "title",
+    "value",
+    "type",
+    "toolTip",
+    "iconUrl",
+    "insuranceQualities",
+    "highlitedState"
+  ],
   data() {
     return {
       iconUrlHash: {
@@ -33,7 +36,12 @@ export default {
   },
   computed: {
     toolTipText: function() {
-      if (this.toolTip) {
+      if (this.insuranceQualities) {
+        let sortedResult = this._.sortBy(this.insuranceQualities, "type");
+        let ranking =
+          this._.findIndex(sortedResult, ["State", this.highlitedState]) + 1;
+        return `The relative ranking against other states: ${ranking}`;
+      } else if (this.toolTip) {
         return `${this.toolTip.State} has the highest ${this.title}: ${
           this.toolTip[this.type]
         }`;
@@ -44,11 +52,21 @@ export default {
   methods: {
     getImgUrl() {
       return require("../assets/" + this.iconUrlHash[this.type]);
-    },
-    updateStateMapWithType() {
-      console.log(">> on stats card clicked", this.type);
-      this.$store.dispatch("updateStateMapWithType", this.type);
     }
+    // showDetailedChart() {
+    //   console.log(">> on stats card clicked", this.type);
+    //   if (this.type == "State") {
+    //     this.$store.commit("updateStateMapSize", {
+    //       width: "850",
+    //       height: "550"
+    //     });
+    //   } else {
+    //     this.$store.commit("updateStateMapSize", {
+    //       width: "800",
+    //       height: "500"
+    //     });
+    //   }
+    // }
   }
 };
 </script>

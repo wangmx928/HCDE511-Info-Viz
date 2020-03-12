@@ -12,6 +12,7 @@
       </div>
     </div>
 
+    <ListPlanCard title="Cheapest Plans" />
     <div id="plan-details">
       <div class="rankedAttributes">
         <AttributeCard
@@ -25,15 +26,12 @@
             v-bind:index="index"
             v-bind:plan="plan"
             v-bind:selectedAttribute="matchHash[selectedAttribute]"
+            v-bind:placeholderCard="!!plan.placeholder"
           />
         </div>
       </div>
 
       <div id="planBasedComparison"></div>
-    </div>
-
-    <div deck class="list-plans">
-      <ListPlanCard title="Cheapest Plans" />
     </div>
   </div>
 </template>
@@ -59,7 +57,11 @@ export default {
     return {
       spiderChart: null,
       selectedAttribute: null,
-      selectedAttributeLists: [],
+      selectedAttributeLists: [
+        { PlanId: "temp1", placeholder: true },
+        { PlanId: "temp2", placeholder: true },
+        { PlanId: "temp3", placeholder: true }
+      ],
       matchHash: {
         "Monthly Premium Rate": "IndividualRate",
         "# of Covered Diseases": "CoveredDiseasesCount",
@@ -226,10 +228,10 @@ export default {
           }
         },
         subtitle: {
-          text: "Comparison Ranking"
+          text: "Click on legend to filter plan."
         },
         title: {
-          text: "Among 3 Chpeapest Insurance Plans"
+          text: "Comparison Ranking among 3 Chpeapest Insurance Plans"
         },
         pane: {
           size: "70%"
@@ -384,12 +386,5 @@ export default {
 .rankedAttributes {
   display: inline-block;
   margin-left: 74px;
-}
-
-.list-plans {
-  display: flex;
-  justify-content: space-evenly;
-  align-items: center;
-  margin-top: 30px;
 }
 </style>

@@ -18,18 +18,19 @@ export default {
 #nav-bar {
   position: fixed;
   top: 0;
-  right: 10px;
+  right: 40px;
   font-weight: bold;
   z-index: 10;
 }
 
 .nav-item {
-  margin: 2px 0 0 10px;
+  margin-left: 10px;
 }
 
 .nav-pills .nav-link {
   border-radius: 5rem;
   color: #ffffff70;
+  font-size: 18px;
 }
 
 .nav-pills .nav-link.active {

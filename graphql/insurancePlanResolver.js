@@ -160,6 +160,7 @@ const queries = {
     },
     resolve: (root, args, context, info) => {
       return new Promise((resolve, reject) => {
+        console.log(">PlanType", args)
         let conditionalString = getConditionalString(args);
         console.log("PlanFilter:", conditionalString)
         database.all(`SELECT DISTINCT PlanType
