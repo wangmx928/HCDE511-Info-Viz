@@ -14,7 +14,7 @@
     "core-js": "^3.6.4",
     "highcharts": "^8.0.2",
     "highcharts-more": "^0.1.7",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "lodash": "^4.17.15",
     "vee-validate": "^2.2.15",
     "vue": "^2.6.11",
